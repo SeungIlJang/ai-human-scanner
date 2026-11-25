@@ -5,17 +5,94 @@ import { session, resetSession } from '../stores/session.js'
 import { config } from '../services/scoreEngine.js'
 import { summary, describe } from '../services/descriptionEngine.js'
 import { makeShareImage, downloadBlob, DISCLAIMER } from '../services/shareService.js'
+import FaceMesh from '../components/FaceMesh.vue'
 import ScoreBar from '../components/ScoreBar.vue'
-const router=useRouter(), preview=ref(''), blob=ref(null), error=ref(''), busy=ref(false), animated=ref(0)
-const result=computed(()=>session.result)
-const top=computed(()=>config.scores.map(item=>({...item,value:result.value?.scores[item.key]||0})).sort((a,b)=>b.value-a.value).slice(0,3))
-const copy=computed(()=>summary(result.value))
-const start=performance.now();let frame
-function animate(){animated.value=Math.round(result.value.total*Math.min(1,(performance.now()-start)/1200));if(animated.value<result.value.total)frame=requestAnimationFrame(animate)}frame=requestAnimationFrame(animate)
-onBeforeUnmount(()=>{cancelAnimationFrame(frame);if(preview.value)URL.revokeObjectURL(preview.value)})
-async function prepare(){busy.value=true;error.value='';try{blob.value=await makeShareImage(session.image,result.value,top.value);if(preview.value)URL.revokeObjectURL(preview.value);preview.value=URL.createObjectURL(blob.value)}catch(e){error.value='공유 이미지를 생성하지 못했습니다.'}finally{busy.value=false}}
-async function share(){if(!blob.value)await prepare();if(!blob.value)return;try{const file=new File([blob.value],'ai-human-scanner-result.png',{type:'image/png'});if(navigator.canShare?.({files:[file]})){await navigator.share({title:'AI 인간 분석기',text:DISCLAIMER,files:[file]})}else{downloadBlob(blob.value)}}catch(e){if(e.name!=='AbortError'){error.value='공유할 수 없어 이미지를 저장합니다.';downloadBlob(blob.value)}}}
-function restart(){resetSession();router.push('/')}
-function closePreview(){if(preview.value)URL.revokeObjectURL(preview.value);preview.value=''}
-</script><template><section><div class="page-head"><div class="eyebrow">SCAN COMPLETE · CHARACTER REPORT</div><h1>당신의 가상 캐릭터 카드</h1><div class="notice">{{ DISCLAIMER }}</div></div><div class="result-layout"><aside><div class="panel result-summary"><img class="result-photo" :src="session.image" alt="분석에 사용한 사진" /><div class="badge" style="margin-top:19px">● CHARACTER PROFILE</div><h2>{{ result.title }}</h2><div class="grade">{{ result.grade }}</div><p class="muted">종합 캐릭터 점수 <strong class="gradient">{{ animated }}점</strong></p><p class="muted">전생 직업 · {{ result.job }}</p><p class="muted">전생 재산 · {{ (result.seed % 990 + 10).toLocaleString() }}만 별코인</p></div></aside><div><div class="panel report-section"><span class="eyebrow">VIRTUAL CHARACTER DATA</span><h2 class="section-title">상상 속 능력치</h2><div class="score-grid"><ScoreBar v-for="item in config.scores" :key="item.key" :label="item.label" :value="result.scores[item.key]" /></div><div class="lie-count"><span>가상의 누적 거짓말 횟수</span><b>{{ result.lieCount.toLocaleString() }}회</b><small>실제 행동과 관련 없는 무작위 설정값</small></div></div><div class="panel report-section" style="margin-top:18px"><span class="eyebrow">STORY MODE</span><h2 class="section-title">캐릭터 해설</h2><p class="story">{{ copy }}</p><h3>가장 높은 능력치 TOP 3</h3><div v-for="(item,index) in top" :key="item.key" class="top-row"><span>0{{ index+1 }} &nbsp; {{ item.label }}</span><b>{{ item.value }}점</b><p>{{ describe(result,item.key) }}</p></div></div><div class="action-row" style="margin:24px 0"><button class="btn neon-btn" :disabled="busy" @click="prepare">공유 이미지 미리보기</button><button class="btn outline-btn" @click="restart">다시 분석하기</button></div><p v-if="error" class="error" role="alert">{{ error }}</p></div></div><div v-if="preview" class="modal-backdrop" @click.self="closePreview"><div class="preview-card panel" role="dialog" aria-modal="true" aria-label="공유 이미지 미리보기"><h2>공유 이미지 미리보기</h2><div><img :src="preview" alt="공유할 결과 이미지 미리보기" style="width:100%;border-radius:8px" /><p class="small muted">{{ DISCLAIMER }}</p></div><div class="modal-actions"><button class="btn outline-btn" @click="downloadBlob(blob)">PNG 저장</button><button class="btn neon-btn" @click="share">공유하기</button><button class="btn text-btn" @click="closePreview">닫기</button></div></div></div></section></template>
-<style scoped>.result-summary,.report-section{padding:22px}.result-summary h2{font-size:24px;margin:14px 0}.result-summary .muted{font-size:14px}.result-summary strong{font-size:20px}.report-section .section-title{margin:8px 0 22px}.lie-count{margin-top:20px;padding:18px;background:#142532;border:1px solid #244456;border-radius:10px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}.lie-count span{color:#a8c7d3}.lie-count b{color:#ffd700;font-size:26px}.lie-count small{width:100%;color:#7497a3}.story{line-height:1.9;color:#d1e5eb}.top-row{border-top:1px solid #2a3948;padding:14px 0}.top-row span{color:#d8edf0}.top-row b{float:right;color:#00ffaa}.top-row p{font-size:13px;color:#8eabb5;margin:8px 0 0}.preview-card{background:#111827!important}@media(max-width:760px){.result-summary{display:grid;grid-template-columns:120px 1fr;column-gap:20px}.result-summary .result-photo{grid-row:1/6}.result-summary .badge{width:max-content}.result-summary .grade{font-size:60px}.result-summary h2{font-size:20px}.result-summary .muted{grid-column:1/3}}</style>
+
+const router = useRouter()
+const preview = ref(''), blob = ref(null), error = ref(''), busy = ref(false), animated = ref(0)
+const photoSize = ref({ width: 0, height: 0 })
+const result = computed(() => session.result)
+const featured = config.scores.slice(0, 5).map((item, index) => ({ ...item, color: ['#21d9a4', '#ff6675', '#e6bc4d', '#ad83e9', '#59a8fb'][index] }))
+const secondary = config.scores.slice(5)
+const top = computed(() => config.scores.map(item => ({ ...item, value: result.value.scores[item.key] })).sort((a, b) => b.value - a.value).slice(0, 3))
+const copy = computed(() => summary(result.value))
+const started = performance.now()
+let frame
+function animate() {
+  animated.value = Math.round(result.value.total * Math.min(1, (performance.now() - started) / 1200))
+  if (animated.value < result.value.total) frame = requestAnimationFrame(animate)
+}
+frame = requestAnimationFrame(animate)
+onBeforeUnmount(() => { cancelAnimationFrame(frame); closePreview() })
+
+async function prepare() {
+  busy.value = true; error.value = ''
+  try {
+    blob.value = await makeShareImage(session.image, result.value, top.value)
+    closePreview()
+    preview.value = URL.createObjectURL(blob.value)
+  } catch { error.value = '공유 이미지를 생성하지 못했습니다.' }
+  finally { busy.value = false }
+}
+async function share() {
+  if (!blob.value) await prepare()
+  if (!blob.value) return
+  try {
+    const file = new File([blob.value], 'ai-human-scanner-result.png', { type: 'image/png' })
+    if (navigator.canShare?.({ files: [file] })) await navigator.share({ title: 'AI 인간 분석기', text: DISCLAIMER, files: [file] })
+    else downloadBlob(blob.value)
+  } catch (e) {
+    if (e.name !== 'AbortError') { error.value = '공유할 수 없어 이미지를 저장합니다.'; downloadBlob(blob.value) }
+  }
+}
+function restart() { resetSession(); router.push('/') }
+function closePreview() { if (preview.value) URL.revokeObjectURL(preview.value); preview.value = '' }
+</script>
+
+<template>
+  <section class="result-page">
+    <div class="scanner-card">
+      <h1 class="scanner-title">AI HUMAN SCANNER</h1>
+      <p class="result-notice">{{ DISCLAIMER }}</p>
+      <div class="scan-visual">
+        <img :src="session.image" alt="스캔한 얼굴 사진" @load="photoSize = { width: $event.target.naturalWidth, height: $event.target.naturalHeight }" />
+        <FaceMesh :landmarks="session.landmarks" :source-width="photoSize.width" :source-height="photoSize.height" bright />
+        <span class="visual-label">FACE SCAN / COMPLETE</span>
+        <span class="scan-bracket top-left"></span><span class="scan-bracket top-right"></span>
+        <span class="scan-bracket bottom-left"></span><span class="scan-bracket bottom-right"></span>
+        <span class="scan-beam"></span>
+        <span class="visual-complete">SIMULATION COMPLETE</span>
+      </div>
+      <p class="section-caption">오락용 가상 캐릭터 분석 결과</p>
+      <div class="featured-scores">
+        <ScoreBar v-for="item in featured" :key="item.key" :label="item.label" :value="result.scores[item.key]" :color="item.color" />
+      </div>
+      <div class="lie-feature">
+        <span>가상의 누적 거짓말 횟수</span>
+        <b>{{ result.lieCount.toLocaleString() }}회</b>
+      </div>
+      <button class="restart-button" @click="restart">◌ &nbsp; 다시 분석하기</button>
+      <p class="card-footnote">실제 인성 분석이 아닌 가상 결과입니다.</p>
+    </div>
+
+    <div class="detail-panel panel">
+      <div class="detail-intro">
+        <img :src="session.image" alt="선택한 사진" class="detail-photo" />
+        <div><span class="eyebrow">CHARACTER PROFILE</span><h2>{{ result.title }} <strong>{{ result.grade }}</strong></h2><p>종합 캐릭터 점수 <b>{{ animated }}점</b></p><p>전생 직업 · {{ result.job }}</p><p>전생 재산 · {{ (result.seed % 990 + 10).toLocaleString() }}만 별코인</p></div>
+      </div>
+      <h3>나머지 가상 능력치</h3>
+      <div class="score-grid"><ScoreBar v-for="item in secondary" :key="item.key" :label="item.label" :value="result.scores[item.key]" /></div>
+      <h3>캐릭터 해설</h3><p class="story">{{ copy }}</p>
+      <h3>가장 높은 능력치 TOP 3</h3>
+      <div v-for="(item, index) in top" :key="item.key" class="top-row"><span>0{{ index + 1 }} &nbsp; {{ item.label }}</span><b>{{ item.value }}점</b><p>{{ describe(result, item.key) }}</p></div>
+      <div class="detail-actions"><button class="btn neon-btn" :disabled="busy" @click="prepare">공유 이미지 미리보기</button><button class="btn outline-btn" @click="restart">다시 분석하기</button></div>
+      <p v-if="error" class="error" role="alert">{{ error }}</p>
+    </div>
+
+    <div v-if="preview" class="modal-backdrop" @click.self="closePreview"><div class="preview-card panel" role="dialog" aria-modal="true" aria-label="공유 이미지 미리보기"><h2>공유 이미지 미리보기</h2><img :src="preview" alt="공유할 결과 이미지 미리보기" style="width:100%;border-radius:8px" /><p class="small muted">{{ DISCLAIMER }}</p><div class="modal-actions"><button class="btn outline-btn" @click="downloadBlob(blob)">PNG 저장</button><button class="btn neon-btn" @click="share">공유하기</button><button class="btn text-btn" @click="closePreview">닫기</button></div></div></div>
+  </section>
+</template>
+
+<style scoped>
+.result-page{padding:24px 0 52px;max-width:700px;margin:auto}.scanner-card{background:#202020;border:1px solid #444;border-radius:13px;padding:14px 13px 16px;color:#f5f5f5}.scanner-title{text-align:center;font-size:17px;line-height:1.4;margin:0 0 5px;font-weight:800}.result-notice{text-align:center;color:#bcc9c6;font-size:12px;line-height:1.5;margin:0 0 12px}.scan-visual{height:clamp(300px,55vw,410px);position:relative;overflow:hidden;border-radius:9px;background-color:#071019;background-image:linear-gradient(#00c99b15 1px,transparent 1px),linear-gradient(90deg,#00c99b15 1px,transparent 1px);background-size:34px 34px}.scan-visual img,.scan-visual canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.scan-visual img{filter:grayscale(1) brightness(.09)}.scan-visual canvas{z-index:1}.visual-label,.visual-complete{position:absolute;z-index:3;color:#17e5b5;font-size:15px}.visual-label{left:25px;top:20px}.visual-complete{bottom:17px;left:0;right:0;text-align:center;font-size:17px}.scan-bracket{position:absolute;z-index:2;width:54px;height:54px;border:4px solid #1be9b8;pointer-events:none}.top-left{top:11%;left:29%;border-right:0;border-bottom:0}.top-right{top:11%;right:29%;border-left:0;border-bottom:0}.bottom-left{bottom:11%;left:29%;border-right:0;border-top:0}.bottom-right{bottom:11%;right:29%;border-left:0;border-top:0}.scan-beam{position:absolute;z-index:2;top:49%;left:25%;right:25%;height:3px;background:#18e7b6;box-shadow:0 0 10px 3px #14dba877;animation:pulse 2s ease-in-out infinite alternate}@keyframes pulse{to{opacity:.35}}.section-caption{text-align:center;font-size:12px;margin:9px 0 13px;color:#d0d0d0}.featured-scores{display:grid;gap:12px}.featured-scores :deep(.score-item){padding:0;background:transparent;border-radius:0}.featured-scores :deep(.score-item-head){font-size:13px;margin-bottom:6px}.featured-scores :deep(.score-item-head b){color:#eee}.featured-scores :deep(.score-track){background:#414149;height:6px}.lie-feature{border-top:1px solid #424242;margin-top:17px;padding-top:14px;display:flex;flex-direction:column;gap:7px;font-size:12px}.lie-feature b{align-self:center;font-size:21px;color:#ff555b}.restart-button{width:100%;border:0;background:#f2f2f2;color:#222;border-radius:22px;min-height:31px;font-size:13px;cursor:pointer}.restart-button:hover{background:#fff}.card-footnote{text-align:center;color:#b7b7b7;font-size:11px;margin:7px 0 0}.detail-panel{margin-top:20px;padding:22px}.detail-intro{display:flex;gap:20px;align-items:start}.detail-photo{width:130px;height:130px;object-fit:cover;border-radius:10px}.detail-intro h2{margin:8px 0;font-size:22px}.detail-intro h2 strong{color:#ffd700}.detail-intro p{font-size:13px;margin:7px 0;color:#a9c2cb}.detail-intro b{color:#00ffaa}.detail-panel h3{font-size:17px;margin:24px 0 12px}.story{font-size:14px;line-height:1.8;color:#d1e5eb}.top-row{border-top:1px solid #2a3948;padding:12px 0}.top-row span{color:#d8edf0}.top-row b{float:right;color:#00ffaa}.top-row p{font-size:13px;color:#8eabb5;margin:8px 0 0}.detail-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}@media(max-width:600px){.result-page{padding:14px 0 30px}.scan-visual{height:clamp(280px,70vw,390px)}.scan-bracket{width:38px;height:38px}.detail-intro{gap:13px}.detail-photo{width:95px;height:95px}.detail-intro h2{font-size:18px}.detail-panel{padding:16px}.detail-actions .btn{flex:1}}
+</style>
