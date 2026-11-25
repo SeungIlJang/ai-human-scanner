@@ -1,0 +1,1 @@
+<script setup>defineProps({ label: String, value: Number })</script><template><div class="score-item"><div class="score-item-head"><span>{{ label }}</span><b>{{ value }}점</b></div><div class="score-track"><span :style="{width:value+'%'}"></span></div></div></template>
