@@ -58,7 +58,7 @@ MediaPipe 1.x는 WebAssembly SIMD 전용 WASM만 제공합니다(약 14.7MB, 전
 
 Vite `base`는 Actions의 `GITHUB_REPOSITORY`에서 저장소 이름을 읽어 `/<repo>/`로 설정합니다. 로컬에서는 `/`입니다. 사용자/조직 루트 저장소(`*.github.io`)는 `vite.config.js`의 `base`를 `/`로 바꾸세요.
 
-공유 미리보기(OG 태그)의 주소는 `https://<owner>.github.io/<repo>/`로 만듭니다. 사용자 지정 도메인을 쓰면 빌드 환경 변수 `SITE_URL`에 사이트 주소를 넣으세요. `public/og-image.png`가 미리보기 이미지입니다.
+공유 미리보기(OG 태그)와 공유 링크의 주소는 GitHub Actions에서는 `https://<owner>.github.io/<repo>/`, 그 밖의 빌드(로컬, 스토어 앱 내장용)에서는 `package.json`의 `homepage`를 씁니다. 그래서 앱에 내장해도 공유 링크는 항상 웹 주소로 나갑니다. 주소가 바뀌면 `homepage`를 고치거나 빌드 환경 변수 `SITE_URL`을 지정하세요. `public/og-image.png`가 미리보기 이미지입니다.
 
 ## 개인정보
 

@@ -6,8 +6,11 @@ import vue from '@vitejs/plugin-vue'
 
 const [owner, repo] = (process.env.GITHUB_REPOSITORY || '').split('/')
 const base = repo ? `/${repo}/` : '/'
-// Share previews need an absolute URL. Set SITE_URL when the site uses a custom domain.
-const siteUrl = (process.env.SITE_URL || (repo ? `https://${owner.toLowerCase()}.github.io/${repo}/` : '/')).replace(/\/?$/, '/')
+// The public address of the web app. Link previews need it, and shared links must point to it even when
+// the app runs from somewhere else, such as inside a store app (https://localhost).
+// Set SITE_URL when the site moves, for example to a custom domain.
+const { homepage } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'))
+const siteUrl = (process.env.SITE_URL || (repo ? `https://${owner.toLowerCase()}.github.io/${repo}/` : homepage)).replace(/\/?$/, '/')
 
 function sitePlugin() {
   let outDir
@@ -61,4 +64,4 @@ function sitePlugin() {
   }
 }
 
-export default defineConfig({ base, plugins: [vue(), sitePlugin()] })
+export default defineConfig({ base, define: { __SITE_URL__: JSON.stringify(siteUrl) }, plugins: [vue(), sitePlugin()] })

@@ -2,6 +2,7 @@
   "name": "ai-human-scanner",
   "version": "1.0.0",
   "private": true,
+  "homepage": "https://seungiljang.github.io/ai-human-scanner/",
   "engines": { "node": "^20.19.0 || >=22.12.0" },
   "type": "module",
   "scripts": {

@@ -20,7 +20,8 @@ const otherReadings = computed(() => (scores.value?.readings ?? []).filter(item 
 const interpretations = computed(() => measurements.value?.filter(group => group.interpretation) ?? [])
 
 const shareStatus = ref(''), sharing = ref(false)
-const site = location.href.split('#')[0]
+// Shared links always use the public web address, not wherever this copy of the app is running.
+const site = __SITE_URL__
 const stat = label => scores.value.highlights.find(item => item.label === label).value
 // Each score has its own page so that the link preview shows that score and grade.
 const shareUrl = () => `${site}s/${stat('인성 점수')}.html`
