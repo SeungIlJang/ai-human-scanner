@@ -103,7 +103,7 @@ function restart() {
             </div>
           </dl>
           <div class="share-actions">
-            <button class="share-button" :disabled="sharing" @click="shareLink">친구에게 공유하기</button>
+            <button class="share-button" :disabled="sharing" @click="shareLink">친구에게 공유</button>
             <button class="share-button share-secondary" :disabled="sharing" @click="shareImage">이미지로 공유</button>
           </div>
           <p class="share-status" role="status">{{ shareStatus }}</p>
@@ -247,7 +247,7 @@ function restart() {
 .basis-source{display:inline-block;margin-top:6px;color:#81f5d1;text-decoration:underline;font-size:12px}
 .tradition-list{padding-left:19px;color:#c8dbd4;font-size:13px;line-height:1.6}
 .tradition-list a{display:block;text-decoration:underline;color:#81f5d1}
-.share-button{width:100%;min-height:48px;border:0;border-radius:8px;background:#21d9a4;color:#06231b;font-size:15px;font-weight:800;cursor:pointer}
+.share-button{white-space:nowrap;width:100%;min-height:48px;border:0;border-radius:8px;background:#21d9a4;color:#06231b;font-size:15px;font-weight:800;cursor:pointer}
 .share-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .share-secondary{background:#1b342d;color:#6af3c8;border:1px solid #21d9a4}
 .share-button:disabled{opacity:.6}

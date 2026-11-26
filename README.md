@@ -76,3 +76,10 @@ MediaPipe는 입력 이미지가 기기에서 처리되고 Google로 보내지�
 ## 확인한 내용과 한계
 
 `npm test`에서 측정·점수 계산·자동 촬영 조건·촬영 품질 검사를 확인하고, 극단적인 비율을 포함한 500개 측정값 조합에서 점수 범위를 확인합니다. `npm run build`로 PWA 파일을 생성했습니다. Android Chrome, iPhone Safari, 실제 전·후면 카메라, 권한 거부, 배포된 GitHub Pages는 이 개발 환경에서 실기기 검증이 필요합니다.
+
+## 스토어 등록용 이미지
+
+`store-assets/` 폴더에 Play 스토어 등록용 이미지가 있습니다. 웹에는 배포되지 않습니다.
+
+- `app-icon-512.png`, `feature-graphic-1024x500.png`: `python scripts/store-graphics.py store-assets`로 다시 만듭니다.
+- `phone-*.png` (1080×1920): 개발 서버를 띄운 뒤 `node scripts/store-screenshots.mjs <개발 서버 주소> <canonical_face_model.obj> store-assets`로 실제 앱 화면을 캡처합니다. 결과 화면은 실제 인물 사진 대신 MediaPipe 표준 얼굴 모델을 넣어 찍습니다.
