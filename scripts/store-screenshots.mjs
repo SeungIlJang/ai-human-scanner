@@ -44,6 +44,9 @@ try {
   const pending = new Map()
   socket.onmessage = event => {
     const message = JSON.parse(event.data)
+    // Surface page errors: a failed screen is otherwise silent.
+    if (message.method === 'Runtime.exceptionThrown') console.error('page error:', message.params.exceptionDetails.exception?.description ?? message.params.exceptionDetails.text)
+    if (message.method === 'Log.entryAdded' && message.params.entry.level === 'error') console.error('page log:', message.params.entry.text, message.params.entry.url ?? '')
     if (!pending.has(message.id)) return
     const { resolve, reject } = pending.get(message.id)
     pending.delete(message.id)
@@ -65,6 +68,11 @@ try {
     console.log('saved', name)
   }
 
+  await send('Runtime.enable')
+  // A fresh headless profile sometimes fails to read its own disk cache, which silently drops a module.
+  await send('Network.enable')
+  await send('Network.setCacheDisabled', { cacheDisabled: true })
+  await send('Log.enable')
   await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 3, mobile: true })
   await send('Page.navigate', { url: `${site}#/` })
   await sleep(2500)

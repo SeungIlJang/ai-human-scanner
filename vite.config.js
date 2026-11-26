@@ -25,12 +25,19 @@ const stores = {
 }
 const anyStore = Boolean(stores.android || stores.ios)
 
+// A shared link may carry the result as ?d=<code>. The app shows it at #/shared/<code>.
+// Only the code's own alphabet is accepted, so nothing else from the address reaches the app's URL.
+const resultTarget = `<script>
+    var shared = (location.search.match(/[?&]d=([A-Za-z0-9_-]{20,200})(?:&|$)/) || [])[1]
+    var target = shared ? '../#/shared/' + shared : '../'
+  </script>`
+
 // Before any store listing is public: go straight to the web app.
-const webRedirect = `  <meta http-equiv="refresh" content="0;url=../"/>
+const webRedirect = `  ${resultTarget}
 </head>
 <body>
   <p><a href="../">모두의 인성측정 열기</a></p>
-  <script>location.replace('../')</script>
+  <script>location.replace(target)</script>
 </body>`
 
 // After one is public: visitors on a phone whose store has the app see an install page.
@@ -49,11 +56,12 @@ const storeLanding = (score, grade) => `  <meta name="theme-color" content="#0a0
     .web{border:1px solid #426570;color:#c9dde4;font-weight:600}
     small{display:block;margin-top:18px;color:#7e9aa8;font-size:12px}
   </style>
+  ${resultTarget}
   <script>
     var stores = ${JSON.stringify(stores)}
     var agent = navigator.userAgent
     var store = /Android/i.test(agent) ? stores.android : /iPhone|iPad|iPod/.test(agent) ? stores.ios : null
-    if (!store) location.replace('../')
+    if (!store) location.replace(target)
   </script>
 </head>
 <body>
@@ -62,6 +70,7 @@ const storeLanding = (score, grade) => `  <meta name="theme-color" content="#0a0
     <h1>친구의 인성은 <b>${score}점</b><br/>너는 몇 점일까?</h1>
     <p>얼굴만 찍으면 인성 점수와 관상 풀이가 나와요.</p>
     <a class="store" id="store" href="../">앱 받기</a>
+    <a class="web" id="detail" href="../" hidden>친구 결과 자세히 보기</a>
     <a class="web" href="../">설치 없이 웹에서 해보기</a>
     <small>오락용 가상 결과입니다. 사진은 기기 밖으로 나가지 않습니다.</small>
   </main>
@@ -70,6 +79,11 @@ const storeLanding = (score, grade) => `  <meta name="theme-color" content="#0a0
       var link = document.getElementById('store')
       link.href = store.url
       link.textContent = store.label
+    }
+    if (shared) {
+      var detail = document.getElementById('detail')
+      detail.href = target
+      detail.hidden = false
     }
   </script>
 </body>`
@@ -132,4 +146,4 @@ ${anyStore ? storeLanding(score, grade) : webRedirect}
   }
 }
 
-export default defineConfig({ base, define: { __SITE_URL__: JSON.stringify(siteUrl) }, plugins: [vue(), sitePlugin()] })
+export default defineConfig({ base, define: { __SITE_URL__: JSON.stringify(siteUrl), __STORES__: JSON.stringify(stores) }, plugins: [vue(), sitePlugin()] })

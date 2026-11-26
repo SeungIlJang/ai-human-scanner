@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { session, resetSession } from '../stores/session.js'
 import { checkCapturedFace, isFacingCamera } from '../utils/captureQuality.js'
 import BrowserHint from '../components/BrowserHint.vue'
+import UpdateBanner from '../components/UpdateBanner.vue'
 const router = useRouter(), file = ref(null), busy = ref(false), error = ref('')
 const faceArt = ref(null)
 const licenseUrl = `${import.meta.env.BASE_URL}MEDIAPIPE-APACHE-LICENSE.txt`
@@ -67,6 +68,7 @@ async function selectPhoto(event) {
 <template>
   <div class="home">
     <section class="home-hero" aria-labelledby="home-title">
+      <UpdateBanner />
       <h1 id="home-title" class="display">얼굴에 다 써 있어요<br><span class="gradient">내 인성, 몇 점일까?</span></h1>
       <p class="hero-intro">얼굴의 비율과 좌우 균형을 측정하고 재미용 관상 점수를 확인해 보세요.</p>
       <div class="home-actions">

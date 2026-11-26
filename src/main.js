@@ -2,9 +2,9 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router/index.js'
 import './style.css'
+import { isStoreApp } from './utils/platform.js'
 
-// The native bridge defines window.Capacitor before any page script runs.
-const inStoreApp = window.Capacitor?.isNativePlatform?.() === true
+const inStoreApp = isStoreApp(window)
 
 if (inStoreApp) {
   // The store app updates its bundle over the air. A failed check must never stop the app.

@@ -4,19 +4,16 @@ import { useRouter } from 'vue-router'
 import { session, resetSession } from '../stores/session.js'
 import traditions from '../data/physiognomy-sources.json'
 import rules from '../data/physiognomy-rules.json'
+import { encodeShare } from '../services/shareCode.js'
 import FaceMesh from '../components/FaceMesh.vue'
-import ScoreBar from '../components/ScoreBar.vue'
+import ResultScores from '../components/ResultScores.vue'
+import ResultReadings from '../components/ResultReadings.vue'
+import ResultExtras from '../components/ResultExtras.vue'
+import '../result.css'
 
 const router = useRouter()
 const scores = computed(() => session.result?.scores)
 const measurements = computed(() => session.result?.measurements)
-// Lead with the features that differ most from the reference; a face near the reference still gets three.
-const featuredReadings = computed(() => {
-  const ranked = [...(scores.value?.readings ?? [])].sort((a, b) => b.strength - a.strength)
-  const notable = ranked.filter(item => item.band !== 'mid' && item.key !== 'symmetry')
-  return (notable.length >= 3 ? notable : ranked).slice(0, 5)
-})
-const otherReadings = computed(() => (scores.value?.readings ?? []).filter(item => !featuredReadings.value.includes(item)))
 const interpretations = computed(() => measurements.value?.filter(group => group.interpretation) ?? [])
 
 const shareStatus = ref(''), sharing = ref(false)
@@ -24,7 +21,8 @@ const shareStatus = ref(''), sharing = ref(false)
 const site = __SITE_URL__
 const stat = label => scores.value.highlights.find(item => item.label === label).value
 // Each score has its own page so that the link preview shows that score and grade.
-const shareUrl = () => `${site}s/${stat('인성 점수')}.html`
+// The code after ?d= lets that page show the whole result. It holds scores and readings, never measurements.
+const shareUrl = () => `${site}s/${stat('인성 점수')}.html?d=${encodeShare(scores.value)}`
 function shareText() {
   const { grade, fortune, caution } = scores.value
   // Korean particles depend on whether the last syllable ends in a consonant.
@@ -93,67 +91,14 @@ function restart() {
         <h2 id="results-title">관상 결과</h2>
         <template v-if="scores">
           <p>사진 속 얼굴을 측정해 《신상전편》의 부위별 풀이와 견준 뒤 재미용 점수로 환산합니다.</p>
-          <dl class="result-highlights">
-            <div v-for="item in scores.highlights" :key="item.label">
-              <dt>{{ item.label }}</dt>
-              <dd v-if="item.unit">{{ item.value.toLocaleString('ko-KR') }}<small>{{ item.unit }}</small></dd>
-              <dd v-else class="result-text">{{ item.value }}</dd>
-              <dd v-if="item.label === '인성 점수'" class="grade-name" :style="{ color: scores.grade.color }">{{ scores.grade.emoji }} {{ scores.grade.name }}</dd>
-            </div>
-          </dl>
-          <div class="fortune-cards">
-            <section class="fortune-card fortune-best">
-              <h3><span>가장 좋은 것</span>{{ scores.fortune.emoji }} {{ scores.fortune.name }}</h3>
-              <p class="fortune-title">{{ scores.fortune.title }}</p>
-              <p>{{ scores.fortune.reading }}</p>
-              <p class="fortune-features">돋보인 부위: {{ scores.fortune.features.join(', ') }}</p>
-              <p v-if="scores.fortune.quote" class="reading-quote">
-                <q lang="zh-Hant">{{ scores.fortune.quote }}</q>
-                <a :href="scores.fortune.url" target="_blank" rel="noopener">{{ scores.fortune.reference }}</a>
-              </p>
-            </section>
-            <section class="fortune-card fortune-caution">
-              <h3><span>가장 주의할 것</span>⚠️ {{ scores.caution.name }}</h3>
-              <p>{{ scores.caution.reading }}</p>
-              <p v-if="scores.caution.quote" class="reading-quote">
-                <q lang="zh-Hant">{{ scores.caution.quote }}</q>
-                <a :href="scores.caution.url" target="_blank" rel="noopener">{{ scores.caution.reference }}</a>
-              </p>
-            </section>
-          </div>
+          <ResultScores :scores="scores" />
           <div class="share-actions">
             <button class="share-button" :disabled="sharing" @click="shareLink">친구에게 공유</button>
             <button class="share-button share-secondary" :disabled="sharing" @click="shareImage">이미지로 공유</button>
           </div>
           <p class="share-status" role="status">{{ shareStatus }}</p>
           <p>점수와 유형은 재미용 결과입니다. 실제 인성이나 행동을 평가하는 수치가 아닙니다.</p>
-          <div class="shape-details">
-            <h3 class="readings-title">관상 풀이 · 눈에 띄는 {{ featuredReadings.length }}곳</h3>
-            <p>측정한 {{ scores.readings.length }}개 부위 중 표준에서 가장 많이 벗어난 곳입니다. 근거 구절은 옛 관상서 《신상전편》에서 가져왔고, 점수 환산과 전생 직업·동물 유형은 이 앱이 정한 놀이 규칙입니다.</p>
-            <div class="interpretations">
-              <section v-for="item in featuredReadings" :key="item.key" class="interpretation">
-                <h3>{{ item.title }} <span class="reading-band" :class="'reading-' + item.band">{{ item.bandLabel }}</span></h3>
-                <p>{{ item.reading }}</p>
-                <p v-if="item.quote" class="reading-quote">
-                  <q lang="zh-Hant">{{ item.quote }}</q>
-                  <a :href="item.url" target="_blank" rel="noopener">{{ item.reference }}</a>
-                </p>
-              </section>
-            </div>
-            <details v-if="otherReadings.length" class="more-readings">
-              <summary>나머지 {{ otherReadings.length }}개 부위 보기</summary>
-              <p v-if="session.captureMetrics">카메라 촬영에서는 여러 프레임의 중앙값으로 측정했습니다.</p>
-              <details v-for="item in otherReadings" :key="item.key" class="interpretation reading-item">
-                <summary>{{ item.title }} <span class="reading-band" :class="'reading-' + item.band">{{ item.bandLabel }}</span></summary>
-                <p class="interpretation-measurement">{{ item.measurement }}</p>
-                <p>{{ item.reading }}</p>
-                <p v-if="item.quote" class="reading-quote">
-                  <q lang="zh-Hant">{{ item.quote }}</q>
-                  <a :href="item.url" target="_blank" rel="noopener">{{ item.reference }}</a>
-                </p>
-              </details>
-            </details>
-          </div>
+          <ResultReadings :scores="scores" :note="session.captureMetrics ? '카메라 촬영에서는 여러 프레임의 중앙값으로 측정했습니다.' : ''" />
         </template>
         <p v-else>점수를 계산할 얼굴 비율이 충분히 측정되지 않았습니다. 얼굴 전체가 보이는 정면 사진으로 다시 시도해 주세요.</p>
         <details v-if="interpretations.length" class="shape-details">
@@ -205,81 +150,8 @@ function restart() {
           </ul>
         </details>
       </section>
-      <details v-if="scores?.additional.length" class="shape-score additional-scores">
-        <summary>다른 점수 보기</summary>
-        <div class="featured-scores">
-          <template v-for="item in scores.additional" :key="item.key">
-            <div v-if="item.unit === '회'" class="result-count">
-              <span>{{ item.label }}</span><strong>{{ item.value.toLocaleString('ko-KR') }}{{ item.unit }}</strong>
-            </div>
-            <ScoreBar v-else :label="item.label" :value="item.value" />
-          </template>
-        </div>
-      </details>
+      <ResultExtras v-if="scores" :scores="scores" />
       <button class="restart-button" @click="restart">◌ &nbsp; 다시 분석하기</button>
     </div>
   </section>
 </template>
-
-<style scoped>
-.result-page{padding:8px 0 40px;max-width:700px;margin:auto}.scanner-card{background:#202020;border:1px solid #444;border-radius:13px;padding:14px 13px 16px;color:#f5f5f5}.scan-visual{height:clamp(300px,55vw,410px);position:relative;overflow:hidden;border-radius:9px;background-color:#071019;background-image:linear-gradient(#00c99b15 1px,transparent 1px),linear-gradient(90deg,#00c99b15 1px,transparent 1px);background-size:34px 34px}.scan-visual canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1}.visual-label{position:absolute;z-index:3;color:#17e5b5;font-size:15px}.visual-label{left:20px;top:16px;margin:0;font-weight:600}.scan-beam{position:absolute;z-index:2;top:49%;left:25%;right:25%;height:3px;background:#18e7b6;box-shadow:0 0 10px 3px #14dba877;animation:pulse 2s ease-in-out infinite alternate}@keyframes pulse{to{opacity:.35}}.featured-scores{display:grid;gap:12px}.featured-scores :deep(.score-item){padding:0;background:transparent;border-radius:0}.featured-scores :deep(.score-item-head){font-size:13px;margin-bottom:6px}.featured-scores :deep(.score-item-head b){color:#eee}.featured-scores :deep(.score-track){background:#414149;height:6px}.restart-button{margin-top:14px;width:100%;border:0;background:#f2f2f2;color:#222;border-radius:22px;min-height:31px;font-size:13px;cursor:pointer}.restart-button:hover{background:#fff}@media(max-width:600px){.result-page{padding:8px 0 30px}.scan-visual{height:clamp(180px,44vh,390px);height:clamp(180px,44svh,390px)}}
-.shape-score{margin:14px 0;padding:14px;border:1px solid #367565;border-radius:10px;background:#142722}
-.result-highlights{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 8px}
-.result-highlights div{padding:9px 10px;border:1px solid #346354;border-radius:8px;background:#1b342d}
-.result-highlights dt{font-size:13px;color:#e8f6f0}
-.result-highlights dd{margin:2px 0 0;color:#6af3c8;font-size:clamp(22px,6vw,34px);font-weight:800;font-variant-numeric:tabular-nums}
-.result-highlights .grade-name{font-size:14px;font-weight:700;line-height:1.3}
-.result-highlights small{margin-left:2px;font-size:13px}
-.result-highlights .result-text{font-size:clamp(16px,4vw,20px);line-height:1.4;word-break:keep-all;overflow-wrap:anywhere}
-.shape-score h2{margin:0;font-size:17px}
-.primary-results h2{font-size:20px}
-.shape-score p{margin:8px 0 12px;color:#c8dbd4;font-size:12px;line-height:1.6}
-.shape-score p:last-child{margin-bottom:0}
-.shape-details{margin-top:12px;padding-top:10px;border-top:1px solid #367565}
-.shape-details summary{cursor:pointer;color:#f5f5f5;font-size:14px;font-weight:700;padding:6px 0}
-.additional-scores summary{cursor:pointer;font-size:15px;font-weight:700;padding:6px 0}
-.additional-scores .featured-scores{margin-top:12px}
-.result-count{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:8px;background:#1b342d;font-size:13px}
-.result-count strong{color:#81f5d1}
-.interpretations{display:grid;gap:8px}
-.interpretation{padding:11px;border-radius:8px;background:#1b342d}
-.interpretation h3{margin:0;font-size:15px}
-.interpretation p{margin:5px 0 0;font-size:13px}
-.interpretation .interpretation-measurement{color:#81f5d1}
-.interpretation a{color:#81f5d1;text-decoration:underline}
-.reading-band{white-space:nowrap;margin-left:6px;padding:1px 7px;border-radius:10px;background:#2b4f45;color:#c8dbd4;font-size:11px;font-weight:600;vertical-align:middle}
-.reading-high,.reading-low{background:#21d9a4;color:#06231b}
-.reading-quote{color:#a9c4bb}
-.reading-quote q{display:block;color:#e8f6f0;font-size:14px}
-.reading-quote a{font-size:12px}
-.readings-title{margin:4px 0 0;font-size:15px}
-.more-readings{margin-top:10px}
-.more-readings>summary{cursor:pointer;padding:10px;border:1px solid #367565;border-radius:8px;text-align:center;font-size:13px;font-weight:700}
-.reading-item{margin-top:8px}
-.reading-item summary{cursor:pointer;font-size:14px;font-weight:700}
-.measurement-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.measurement-group{padding:10px;border-radius:8px;background:#1b342d}
-.measurement-group h3{margin:0 0 8px;font-size:14px}
-.measurement-group dl{margin:0}
-.measurement-group dl div{display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px}
-.measurement-group dd{margin:0;white-space:nowrap;color:#81f5d1}
-.basis-source{display:inline-block;margin-top:6px;color:#81f5d1;text-decoration:underline;font-size:12px}
-.tradition-list{padding-left:19px;color:#c8dbd4;font-size:13px;line-height:1.6}
-.tradition-list a{display:block;text-decoration:underline;color:#81f5d1}
-.share-button{white-space:nowrap;width:100%;min-height:48px;border:0;border-radius:8px;background:#21d9a4;color:#06231b;font-size:15px;font-weight:800;cursor:pointer}
-.fortune-cards{display:grid;gap:8px;margin:4px 0 12px}
-.fortune-card{padding:12px;border-radius:10px;border:1px solid #2f8f78;background:#17352e}
-.fortune-caution{border-color:#8f6a2f;background:#33291a}
-.fortune-card h3{margin:0;font-size:19px;line-height:1.35}
-.fortune-card h3 span{display:block;color:#6af3c8;font-size:12px;font-weight:700}
-.fortune-caution h3 span{color:#ffc46b}
-.fortune-card p{margin:5px 0 0;font-size:13px}
-.fortune-card .fortune-title{color:#6af3c8;font-size:14px;font-weight:700}
-.fortune-card .fortune-features{color:#a9c4bb;font-size:12px}
-.fortune-card a{color:#81f5d1;text-decoration:underline}
-.share-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.share-secondary{background:#1b342d;color:#6af3c8;border:1px solid #21d9a4}
-.share-button:disabled{opacity:.6}
-.share-status{min-height:18px;margin:6px 0;color:#c8dbd4;font-size:12px;text-align:center}
-@media(max-width:540px){.measurement-grid{grid-template-columns:1fr}}
-</style>
