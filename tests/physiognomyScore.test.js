@@ -107,15 +107,17 @@ test('a missing required measurement gives no score', () => {
   assert.ok(score(withoutBalance))
 })
 
-test('every animal type has what a shared link needs: a page name, an emoji and a preview image', async () => {
+test('every kindness score has a grade and a link preview image', async () => {
   const { existsSync } = await import('node:fs')
-  for (const animal of rules.animals) {
-    assert.match(animal.slug, /^[a-z]+$/, animal.name)
-    assert.ok(animal.emoji, animal.name)
-    assert.ok(existsSync(new URL(`../public/share/${animal.slug}.png`, import.meta.url)), `${animal.slug}.png`)
+  assert.deepEqual(rules.grades.map(grade => grade.min), [...rules.grades.map(grade => grade.min)].sort((a, b) => b - a))
+  assert.equal(rules.grades.at(-1).min, 0)
+  for (let points = 0; points <= 100; points++) {
+    assert.ok(rules.grades.find(grade => points >= grade.min), `grade for ${points}`)
+    assert.ok(existsSync(new URL(`../public/share/${points}.png`, import.meta.url)), `${points}.png`)
   }
-  const result = score(reference)
-  assert.deepEqual(Object.keys(result.animal), ['name', 'slug', 'emoji'])
-  assert.equal(result.animal.name, value(result, '동물 유형'))
-  assert.equal(result.job, value(result, '전생 직업'))
+  for (const grade of rules.grades) assert.ok(grade.name && grade.emoji && /^#[0-9a-f]{6}$/.test(grade.color), grade.name)
+  const kind = score({ ...reference, noseWidth: 27, lipThickness: 42, midFace: 44.4, browGap: 27, browLength: 195 })
+  const unkind = score({ ...reference, noseWidth: 16, lipThickness: 16, midFace: 36.4, browGap: 15, browLength: 135 })
+  assert.equal(score(reference).grade, rules.grades.find(grade => value(score(reference), '인성 점수') >= grade.min))
+  assert.ok(kind.grade.min > unkind.grade.min)
 })

@@ -158,13 +158,20 @@
       "low": { "label": "차이 나는 편", "reading": "이 사진에서는 좌우가 조금 달라요. 옛 책은 한쪽 광대가 높고 한쪽이 낮은 것을 형(形)이 모자란다고 했습니다. 고개 각도 탓일 수 있으니 장난기 많은 상 정도로 풀이해요.", "quote": "一顴高，一顴低", "volume": 1, "section": "論形不足" }
     }
   ],
+  "grades": [
+    { "min": 90, "name": "살아 있는 성인군자", "emoji": "😇", "color": "#00ffaa" },
+    { "min": 75, "name": "천사표 인성", "emoji": "😊", "color": "#7be495" },
+    { "min": 60, "name": "선량한 시민", "emoji": "🙂", "color": "#ffd84a" },
+    { "min": 45, "name": "은근한 악동", "emoji": "😏", "color": "#ff9f43" },
+    { "min": 0, "name": "타고난 빌런", "emoji": "😈", "color": "#ff5d6c" }
+  ],
   "animals": [
-    { "name": "호랑이형", "slug": "tiger", "emoji": "🐯", "traits": ["pride", "stubborn"] },
-    { "name": "여우형", "slug": "fox", "emoji": "🦊", "traits": ["wit", "mischief"] },
-    { "name": "사슴형", "slug": "deer", "emoji": "🦌", "traits": ["innocence", "kindness"] },
-    { "name": "곰형", "slug": "bear", "emoji": "🐻", "traits": ["loyalty", "lazy"] },
-    { "name": "공작형", "slug": "peacock", "emoji": "🦚", "traits": ["swagger", "romance"] },
-    { "name": "원숭이형", "slug": "monkey", "emoji": "🐵", "traits": ["humor", "playful"] }
+    { "name": "호랑이형", "traits": ["pride", "stubborn"] },
+    { "name": "여우형", "traits": ["wit", "mischief"] },
+    { "name": "사슴형", "traits": ["innocence", "kindness"] },
+    { "name": "곰형", "traits": ["loyalty", "lazy"] },
+    { "name": "공작형", "traits": ["swagger", "romance"] },
+    { "name": "원숭이형", "traits": ["humor", "playful"] }
   ],
   "jobs": [
     { "trait": "kindness", "name": "인심 좋은 마을 훈장" },

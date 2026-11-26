@@ -53,16 +53,17 @@ export function createPhysiognomyScores(groups, data = ruleData) {
   const total = trait => totals[trait] ?? 0
   const points = trait => clamp(Math.round(data.base[trait] + total(trait)), 0, 100)
   const mischief = points('mischief')
+  const kindness = points('kindness')
   // Pick the type whose traits stand out most. Earlier entries win ties so the result is repeatable.
   const strongest = (items, score) => items.reduce((best, item) => score(item) > score(best) ? item : best)
   const animal = strongest(data.animals, item => item.traits.reduce((sum, trait) => sum + total(trait), 0))
   const job = strongest(data.jobs, item => total(item.trait))
   return {
     readings,
-    animal: { name: animal.name, slug: animal.slug, emoji: animal.emoji },
-    job: job.name,
+    // Grades are listed from the highest threshold down.
+    grade: data.grades.find(item => kindness >= item.min),
     highlights: [
-      { label: '인성 점수', value: points('kindness'), unit: '점' },
+      { label: '인성 점수', value: kindness, unit: '점' },
       { label: '거짓말 횟수', value: Math.max(0, Math.round(data.base.lies + total('lies'))), unit: '회' },
       { label: '못된 점수', value: mischief, unit: '점' },
       { label: '잔머리 지수', value: points('wit'), unit: '점' },

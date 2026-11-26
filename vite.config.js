@@ -22,22 +22,23 @@ function sitePlugin() {
     transformIndexHtml: html => html.replaceAll('__SITE_URL__', siteUrl),
     // The app cache changes with every build. The model/WASM cache changes only with those files.
     closeBundle() {
-      // One static page per animal type gives a shared link its own preview card, then opens the app.
-      const { animals } = JSON.parse(readFileSync(resolve('src/data/physiognomy-rules.json'), 'utf8'))
+      // One static page per kindness score gives a shared link its own preview card, then opens the app.
+      const { grades } = JSON.parse(readFileSync(resolve('src/data/physiognomy-rules.json'), 'utf8'))
       mkdirSync(join(outDir, 's'), { recursive: true })
-      for (const { name, slug, emoji } of animals) {
-        writeFileSync(join(outDir, 's', `${slug}.html`), `<!doctype html>
+      for (let score = 0; score <= 100; score++) {
+        const grade = grades.find(item => score >= item.min)
+        writeFileSync(join(outDir, 's', `${score}.html`), `<!doctype html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>나는 ${name}! 너는? · 모두의 인성측정</title>
+  <title>내 인성 ${score}점! 너는? · 모두의 인성측정</title>
   <meta property="og:type" content="website"/>
   <meta property="og:site_name" content="모두의 인성측정"/>
-  <meta property="og:title" content="나는 ${emoji} ${name}! 너는 무슨 형일까?"/>
-  <meta property="og:description" content="얼굴만 찍으면 인성 점수와 동물 유형이 나와요. 설치 없이 바로 해 보세요."/>
-  <meta property="og:url" content="${siteUrl}s/${slug}.html"/>
-  <meta property="og:image" content="${siteUrl}share/${slug}.png"/>
+  <meta property="og:title" content="내 인성 ${score}점 ${grade.emoji} ${grade.name}! 너는 몇 점?"/>
+  <meta property="og:description" content="얼굴만 찍으면 인성 점수가 나와요. 얼굴에 다 써 있대요."/>
+  <meta property="og:url" content="${siteUrl}s/${score}.html"/>
+  <meta property="og:image" content="${siteUrl}share/${score}.png"/>
   <meta property="og:image:width" content="1200"/>
   <meta property="og:image:height" content="630"/>
   <meta name="twitter:card" content="summary_large_image"/>

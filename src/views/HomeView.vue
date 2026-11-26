@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { session, resetSession } from '../stores/session.js'
 import { checkCapturedFace, isFacingCamera } from '../utils/captureQuality.js'
-import InstallPrompt from '../components/InstallPrompt.vue'
+import BrowserHint from '../components/BrowserHint.vue'
 const router = useRouter(), file = ref(null), busy = ref(false), error = ref('')
 const faceArt = ref(null)
 const licenseUrl = `${import.meta.env.BASE_URL}MEDIAPIPE-APACHE-LICENSE.txt`
@@ -76,7 +76,7 @@ async function selectPhoto(event) {
         <input ref="file" type="file" accept="image/*" hidden @change="selectPhoto" />
       </div>
       <p v-if="error" class="error" role="alert">{{ error }}</p>
-      <InstallPrompt />
+      <BrowserHint />
 
       <div class="hero-art" aria-hidden="true">
         <div class="scan-reticle">

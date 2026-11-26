@@ -3,9 +3,9 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { session, resetSession } from '../stores/session.js'
 import traditions from '../data/physiognomy-sources.json'
+import rules from '../data/physiognomy-rules.json'
 import FaceMesh from '../components/FaceMesh.vue'
 import ScoreBar from '../components/ScoreBar.vue'
-import InstallPrompt from '../components/InstallPrompt.vue'
 
 const router = useRouter()
 const scores = computed(() => session.result?.scores)
@@ -22,13 +22,16 @@ const interpretations = computed(() => measurements.value?.filter(group => group
 const shareStatus = ref(''), sharing = ref(false)
 const site = location.href.split('#')[0]
 const stat = label => scores.value.highlights.find(item => item.label === label).value
-// Each animal type has its own page so that the link preview shows that type.
-const shareUrl = () => `${site}s/${scores.value.animal.slug}.html`
+// Each score has its own page so that the link preview shows that score and grade.
+const shareUrl = () => `${site}s/${stat('인성 점수')}.html`
 function shareText() {
-  const { animal, job } = scores.value
+  const { grade } = scores.value
+  // Korean particles depend on whether the last syllable ends in a consonant.
+  const endsInConsonant = word => (word.charCodeAt(word.length - 1) - 0xAC00) % 28 > 0
+  const job = stat('전생 직업')
   return [
-    `나 인성 ${stat('인성 점수')}점 나왔어 ${animal.emoji} ${animal.name}이래!`,
-    `전생엔 ${job}, 평생 거짓말은 ${stat('거짓말 횟수').toLocaleString('ko-KR')}번 한대 ㅋㅋ`,
+    `나 인성 ${stat('인성 점수')}점 나왔어 ${grade.emoji} "${grade.name}"${endsInConsonant(grade.name) ? '이래' : '래'}!`,
+    `평생 거짓말은 ${stat('거짓말 횟수').toLocaleString('ko-KR')}번, 전생엔 ${job}${endsInConsonant(job) ? '이었대' : '였대'} ㅋㅋ`,
     '너는 몇 점인지 얼굴만 찍어 봐 👇'
   ].join('\n')
 }
@@ -52,11 +55,10 @@ const shareLink = () => run(async () => {
 })
 const shareImage = () => run(async () => {
   const { shareCardFile } = await import('../utils/shareCard.js')
-  const { animal, job } = scores.value
   const file = await shareCardFile({
-    animal, job, siteLabel: site.replace(/^https?:\/\//, '').replace(/\/$/, ''),
+    score: stat('인성 점수'), grade: scores.value.grade, grades: rules.grades,
+    siteLabel: site.replace(/^https?:\/\//, '').replace(/\/$/, ''),
     stats: [
-      { label: '인성 점수', value: `${stat('인성 점수')}점` },
       { label: '거짓말 횟수', value: `${stat('거짓말 횟수').toLocaleString('ko-KR')}회` },
       { label: '못된 점수', value: `${stat('못된 점수')}점` },
       { label: '잔머리 지수', value: `${stat('잔머리 지수')}점` }
@@ -96,6 +98,7 @@ function restart() {
               <dt>{{ item.label }}</dt>
               <dd v-if="item.unit">{{ item.value.toLocaleString('ko-KR') }}<small>{{ item.unit }}</small></dd>
               <dd v-else class="result-text">{{ item.value }}</dd>
+              <dd v-if="item.label === '인성 점수'" class="grade-name" :style="{ color: scores.grade.color }">{{ scores.grade.emoji }} {{ scores.grade.name }}</dd>
             </div>
           </dl>
           <div class="share-actions">
@@ -193,7 +196,6 @@ function restart() {
           </template>
         </div>
       </details>
-      <InstallPrompt />
       <button class="restart-button" @click="restart">◌ &nbsp; 다시 분석하기</button>
     </div>
   </section>
@@ -206,6 +208,7 @@ function restart() {
 .result-highlights div{padding:9px 10px;border:1px solid #346354;border-radius:8px;background:#1b342d}
 .result-highlights dt{font-size:13px;color:#e8f6f0}
 .result-highlights dd{margin:2px 0 0;color:#6af3c8;font-size:clamp(22px,6vw,34px);font-weight:800;font-variant-numeric:tabular-nums}
+.result-highlights .grade-name{font-size:14px;font-weight:700;line-height:1.3}
 .result-highlights small{margin-left:2px;font-size:13px}
 .result-highlights .result-text{font-size:clamp(16px,4vw,20px);line-height:1.4;word-break:keep-all;overflow-wrap:anywhere}
 .shape-score h2{margin:0;font-size:17px}
