@@ -1,0 +1,41 @@
+{
+  "concepts": [
+    {
+      "title": "오관(五官)",
+      "summary": "전통 상법에서 귀, 눈썹, 눈, 코, 입을 묶어 부르는 이름입니다.",
+      "source": "aksPhysiognomy"
+    },
+    {
+      "title": "삼정(三停)",
+      "summary": "이마, 코, 턱에 대응하는 얼굴의 위·가운데·아래 구역을 살피는 전통 분류입니다.",
+      "source": "aksPhysiognomy"
+    },
+    {
+      "title": "오악(五嶽)",
+      "summary": "두 광대와 이마, 턱, 코를 각각 다섯 산에 빗댄 전통 분류입니다.",
+      "source": "aksFace"
+    }
+  ],
+  "sources": {
+    "aksPhysiognomy": {
+      "title": "한국민족문화대백과사전 〈관상〉",
+      "url": "https://encykorea.aks.ac.kr/Article/E0004873"
+    },
+    "aksFace": {
+      "title": "한국민족문화대백과사전 〈얼굴〉",
+      "url": "https://encykorea.aks.ac.kr/Article/E0036194"
+    },
+    "mai": {
+      "title": "국회도서관 《마의상법》 소장 정보",
+      "url": "https://dl.nanet.go.kr/detail/MONO1201033478"
+    },
+    "shenxiang": {
+      "title": "《신상전편(神相全編)》 공개 스캔과 〈달마오관총론〉 목차",
+      "url": "https://commons.wikimedia.org/wiki/File:NLC416-13jh001662-59167_神相全編.pdf"
+    },
+    "riss": {
+      "title": "RISS 학술자료 검색",
+      "url": "https://www.riss.kr/"
+    }
+  }
+}

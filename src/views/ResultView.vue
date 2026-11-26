@@ -5,6 +5,8 @@ import { session, resetSession } from '../stores/session.js'
 import { config } from '../services/scoreEngine.js'
 import { summary, describe } from '../services/descriptionEngine.js'
 import { measureFaceShape } from '../services/faceShapeScore.js'
+import { measureFaceDetails } from '../services/faceMeasurements.js'
+import traditions from '../data/physiognomy-sources.json'
 import { makeShareImage, downloadBlob, DISCLAIMER } from '../services/shareService.js'
 import FaceMesh from '../components/FaceMesh.vue'
 import ScoreBar from '../components/ScoreBar.vue'
@@ -13,6 +15,7 @@ const router = useRouter()
 const preview = ref(''), blob = ref(null), error = ref(''), busy = ref(false), animated = ref(0)
 const result = computed(() => session.result)
 const faceShape = computed(() => measureFaceShape(session.landmarks?.[0], session.imageAspect))
+const measurements = computed(() => measureFaceDetails(session.landmarks?.[0], session.imageAspect, faceShape.value?.total))
 const featured = config.scores.slice(0, 5).map((item, index) => ({ ...item, color: ['#21d9a4', '#ff6675', '#e6bc4d', '#ad83e9', '#59a8fb'][index] }))
 const secondary = config.scores.slice(5)
 const top = computed(() => config.scores.map(item => ({ ...item, value: result.value.scores[item.key] })).sort((a, b) => b.value - a.value).slice(0, 3))
@@ -74,6 +77,35 @@ function closePreview() { if (preview.value) URL.revokeObjectURL(preview.value);
           <p>얼굴 너비는 높이의 {{ faceShape.widthToHeight }}%, 눈 사이 간격은 얼굴 너비의 {{ faceShape.eyeGapToWidth }}%입니다.</p>
         </template>
         <p v-else>이 사진에서 얼굴 비율을 측정하지 못했습니다.</p>
+        <details v-if="measurements" class="shape-details">
+          <summary>부위별 얼굴 측정값</summary>
+          <p>사진 속 비율과 각도입니다. 얼굴형은 앱의 비율 기준으로 추정합니다. 이마와 상·중·하 비율은 모델의 이마 위쪽 점을 기준으로 하며, 광대 깊이는 사진에서 추정한 상대값입니다. 눈·눈썹·입꼬리 각도에서 양수는 바깥쪽이 위로 향한다는 뜻입니다.</p>
+          <div class="measurement-grid">
+            <section v-for="group in measurements" :key="group.title" class="measurement-group">
+              <h3>{{ group.title }}</h3>
+              <dl>
+                <div v-for="row in group.rows" :key="row.label">
+                  <dt>{{ row.label }}</dt><dd>{{ row.value }}</dd>
+                </div>
+              </dl>
+            </section>
+          </div>
+        </details>
+        <details class="shape-details">
+          <summary>전통 관상 용어와 출처</summary>
+          <p>오관, 삼정, 오악은 전통 관상에서 쓰인 분류입니다. 앱의 점수는 사진에서 측정한 좌우 균형으로 계산합니다.</p>
+          <ul class="tradition-list">
+            <li v-for="concept in traditions.concepts" :key="concept.title">
+              <strong>{{ concept.title }}</strong> {{ concept.summary }}
+              <a :href="traditions.sources[concept.source].url" target="_blank" rel="noopener">{{ traditions.sources[concept.source].title }}</a>
+            </li>
+          </ul>
+          <ul class="tradition-list">
+            <li v-for="key in ['mai', 'shenxiang', 'riss']" :key="key">
+              <a :href="traditions.sources[key].url" target="_blank" rel="noopener">{{ traditions.sources[key].title }}</a>
+            </li>
+          </ul>
+        </details>
       </section>
       <p class="section-caption">무작위로 생성한 오락용 캐릭터 점수</p>
       <div class="featured-scores">
@@ -114,4 +146,15 @@ function closePreview() { if (preview.value) URL.revokeObjectURL(preview.value);
 .shape-heading small{color:#bfd1ca;font-size:12px;font-weight:400}
 .shape-score p{margin:8px 0 12px;color:#c8dbd4;font-size:12px;line-height:1.6}
 .shape-score p:last-child{margin-bottom:0}
+.shape-details{margin-top:12px;padding-top:10px;border-top:1px solid #367565}
+.shape-details summary{cursor:pointer;color:#f5f5f5;font-size:14px;font-weight:700;padding:6px 0}
+.measurement-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.measurement-group{padding:10px;border-radius:8px;background:#1b342d}
+.measurement-group h3{margin:0 0 8px;font-size:14px}
+.measurement-group dl{margin:0}
+.measurement-group dl div{display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px}
+.measurement-group dd{margin:0;white-space:nowrap;color:#81f5d1}
+.tradition-list{padding-left:19px;color:#c8dbd4;font-size:13px;line-height:1.6}
+.tradition-list a{display:block;text-decoration:underline;color:#81f5d1}
+@media(max-width:540px){.measurement-grid{grid-template-columns:1fr}}
 </style>
