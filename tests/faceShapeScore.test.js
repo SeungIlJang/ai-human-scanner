@@ -39,9 +39,13 @@ test('the four entertainment scores use the measured face and are repeatable', (
   modified[263] = { x: .63, y: .4 }
   const different = createPhysiognomyScores(measureFaceShape(modified, 1.2))
   assert.notDeepEqual(different, result)
-  assert.deepEqual(result.map(item => [item.label, item.unit]), [
-    ['인성 점수', '점'], ['거짓말 횟수', '회'], ['못된 짓 횟수', '회'], ['바람둥이 지수', '점']
+  assert.deepEqual(result.highlights.map(item => [item.label, item.unit]), [
+    ['인성 점수', '점'], ['거짓말 횟수', '회'], ['못된 짓 횟수', '회'], ['잔머리 지수', '점']
   ])
-  assert.ok(result[2].value >= 0 && result[2].value <= 300)
+  assert.ok(result.highlights[2].value >= 0 && result.highlights[2].value <= 300)
+  const additional = new Map(result.additional.map(item => [item.label, item.value]))
+  assert.ok(additional.has('고집 지수') && additional.has('유머 지수'))
+  assert.equal(additional.has('바람둥이 지수'), false)
+  assert.ok(result.highlights.every(item => !additional.has(item.label)))
   assert.equal(createPhysiognomyScores(null), null)
 })

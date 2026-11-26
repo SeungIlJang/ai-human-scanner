@@ -32,7 +32,7 @@ function restart() {
         <template v-if="scores">
           <p>사진의 얼굴 비율과 좌우 균형을 바탕으로 생성한 재미용 점수입니다.</p>
           <dl class="result-highlights">
-            <div v-for="item in scores" :key="item.label">
+            <div v-for="item in scores.highlights" :key="item.label">
               <dt>{{ item.label }}</dt>
               <dd>{{ item.value.toLocaleString('ko-KR') }}<small>{{ item.unit }}</small></dd>
             </div>
@@ -99,6 +99,12 @@ function restart() {
           </ul>
         </details>
       </section>
+      <details v-if="scores?.additional.length" class="shape-score additional-scores">
+        <summary>다른 점수 보기</summary>
+        <div class="featured-scores">
+          <ScoreBar v-for="item in scores.additional" :key="item.key" :label="item.label" :value="item.value" />
+        </div>
+      </details>
       <button class="restart-button" @click="restart">◌ &nbsp; 다시 분석하기</button>
     </div>
   </section>
@@ -122,6 +128,8 @@ function restart() {
 .shape-score p:last-child{margin-bottom:0}
 .shape-details{margin-top:12px;padding-top:10px;border-top:1px solid #367565}
 .shape-details summary{cursor:pointer;color:#f5f5f5;font-size:14px;font-weight:700;padding:6px 0}
+.additional-scores summary{cursor:pointer;font-size:15px;font-weight:700;padding:6px 0}
+.additional-scores .featured-scores{margin-top:12px}
 .interpretations{display:grid;gap:8px}
 .interpretation{padding:11px;border-radius:8px;background:#1b342d}
 .interpretation h3{margin:0;font-size:15px}
