@@ -13,7 +13,7 @@ async function selectPhoto(event) {
     const faces = await detectFace(image)
     if (faces.length !== 1) { error.value = faces.length ? '여러 얼굴이 감지되었습니다. 한 명만 나온 사진을 선택해 주세요.' : '얼굴을 찾지 못했습니다. 정면 얼굴이 잘 보이는 사진을 선택해 주세요.'; return }
     const canvas = document.createElement('canvas'); const scale = Math.min(1, 1280/Math.max(image.width,image.height)); canvas.width=Math.round(image.width*scale);canvas.height=Math.round(image.height*scale);canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height)
-    resetSession(); session.image=canvas.toDataURL('image/jpeg',.9);session.landmarks=faces;router.push('/analysis')
+    resetSession(); session.image=canvas.toDataURL('image/jpeg',.9);session.imageAspect=image.naturalWidth/image.naturalHeight;session.landmarks=faces;router.push('/analysis')
   } catch(e) { error.value = e.message.includes('fetch') ? '얼굴 분석 모델을 불러오지 못했습니다. 연결 상태를 확인해 주세요.' : e.message }
   finally { if(url) URL.revokeObjectURL(url); busy.value=false; event.target.value='' }
 }

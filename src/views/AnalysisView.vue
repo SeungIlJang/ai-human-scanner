@@ -21,7 +21,7 @@ function cancel(){resetSession();router.push('/')}
       <h1>캐릭터 데이터 생성 중</h1>
       <div class="score-track" role="progressbar" aria-label="스캔 진행률" :aria-valuenow="progress"><span :style="{ width: progress + '%' }"></span></div>
       <p class="scan-message">{{ message }}</p>
-      <p class="muted">시각화용 얼굴 특징점은 점수 산출에 사용되지 않습니다.</p>
+      <p class="muted">얼굴 특징점으로 사진 속 얼굴 형태를 측정합니다.</p>
       <button class="btn text-btn" @click="cancel">분석 취소</button>
     </div>
   </section>

@@ -173,6 +173,7 @@ async function shoot(automatic = false) {
     releaseCamera()
     resetSession()
     session.image = image
+    session.imageAspect = captured.width / captured.height
     session.landmarks = landmarks
     router.push('/analysis')
   } catch (error) {

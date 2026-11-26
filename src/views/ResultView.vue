@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { session, resetSession } from '../stores/session.js'
 import { config } from '../services/scoreEngine.js'
 import { summary, describe } from '../services/descriptionEngine.js'
+import { measureFaceShape } from '../services/faceShapeScore.js'
 import { makeShareImage, downloadBlob, DISCLAIMER } from '../services/shareService.js'
 import FaceMesh from '../components/FaceMesh.vue'
 import ScoreBar from '../components/ScoreBar.vue'
@@ -11,6 +12,7 @@ import ScoreBar from '../components/ScoreBar.vue'
 const router = useRouter()
 const preview = ref(''), blob = ref(null), error = ref(''), busy = ref(false), animated = ref(0)
 const result = computed(() => session.result)
+const faceShape = computed(() => measureFaceShape(session.landmarks?.[0], session.imageAspect))
 const featured = config.scores.slice(0, 5).map((item, index) => ({ ...item, color: ['#21d9a4', '#ff6675', '#e6bc4d', '#ad83e9', '#59a8fb'][index] }))
 const secondary = config.scores.slice(5)
 const top = computed(() => config.scores.map(item => ({ ...item, value: result.value.scores[item.key] })).sort((a, b) => b.value - a.value).slice(0, 3))
@@ -27,7 +29,7 @@ onBeforeUnmount(() => { cancelAnimationFrame(frame); closePreview() })
 async function prepare() {
   busy.value = true; error.value = ''
   try {
-    blob.value = await makeShareImage(session.image, result.value, top.value)
+    blob.value = await makeShareImage(session.image, result.value, top.value, faceShape.value)
     closePreview()
     preview.value = URL.createObjectURL(blob.value)
   } catch { error.value = '공유 이미지를 생성하지 못했습니다.' }
@@ -59,7 +61,21 @@ function closePreview() { if (preview.value) URL.revokeObjectURL(preview.value);
         <span class="scan-beam"></span>
         <span class="visual-complete">SIMULATION COMPLETE</span>
       </div>
-      <p class="section-caption">오락용 가상 캐릭터 분석 결과</p>
+      <section class="shape-score" aria-labelledby="shape-title">
+        <div class="shape-heading">
+          <h2 id="shape-title">관상 스캔 점수</h2>
+          <strong v-if="faceShape">{{ faceShape.total }}점<small> / 100</small></strong>
+        </div>
+        <template v-if="faceShape">
+          <p>사진에서 측정한 눈, 볼, 입꼬리의 좌우 균형 평균입니다.</p>
+          <div class="featured-scores">
+            <ScoreBar v-for="item in faceShape.scores" :key="item.label" :label="item.label" :value="item.value" />
+          </div>
+          <p>얼굴 너비는 높이의 {{ faceShape.widthToHeight }}%, 눈 사이 간격은 얼굴 너비의 {{ faceShape.eyeGapToWidth }}%입니다.</p>
+        </template>
+        <p v-else>이 사진에서 얼굴 비율을 측정하지 못했습니다.</p>
+      </section>
+      <p class="section-caption">무작위로 생성한 오락용 캐릭터 점수</p>
       <div class="featured-scores">
         <ScoreBar v-for="item in featured" :key="item.key" :label="item.label" :value="result.scores[item.key]" :color="item.color" />
       </div>
@@ -91,4 +107,11 @@ function closePreview() { if (preview.value) URL.revokeObjectURL(preview.value);
 
 <style scoped>
 .result-page{padding:24px 0 52px;max-width:700px;margin:auto}.scanner-card{background:#202020;border:1px solid #444;border-radius:13px;padding:14px 13px 16px;color:#f5f5f5}.scanner-title{text-align:center;font-size:17px;line-height:1.4;margin:0 0 5px;font-weight:800}.result-notice{text-align:center;color:#bcc9c6;font-size:12px;line-height:1.5;margin:0 0 12px}.scan-visual{height:clamp(300px,55vw,410px);position:relative;overflow:hidden;border-radius:9px;background-color:#071019;background-image:linear-gradient(#00c99b15 1px,transparent 1px),linear-gradient(90deg,#00c99b15 1px,transparent 1px);background-size:34px 34px}.scan-visual canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1}.visual-label,.visual-complete{position:absolute;z-index:3;color:#17e5b5;font-size:15px}.visual-label{left:25px;top:20px}.visual-complete{bottom:17px;left:0;right:0;text-align:center;font-size:17px}.scan-beam{position:absolute;z-index:2;top:49%;left:25%;right:25%;height:3px;background:#18e7b6;box-shadow:0 0 10px 3px #14dba877;animation:pulse 2s ease-in-out infinite alternate}@keyframes pulse{to{opacity:.35}}.section-caption{text-align:center;font-size:12px;margin:9px 0 13px;color:#d0d0d0}.featured-scores{display:grid;gap:12px}.featured-scores :deep(.score-item){padding:0;background:transparent;border-radius:0}.featured-scores :deep(.score-item-head){font-size:13px;margin-bottom:6px}.featured-scores :deep(.score-item-head b){color:#eee}.featured-scores :deep(.score-track){background:#414149;height:6px}.lie-feature{border-top:1px solid #424242;margin-top:17px;padding-top:14px;display:flex;flex-direction:column;gap:7px;font-size:12px}.lie-feature b{align-self:center;font-size:21px;color:#ff555b}.restart-button{width:100%;border:0;background:#f2f2f2;color:#222;border-radius:22px;min-height:31px;font-size:13px;cursor:pointer}.restart-button:hover{background:#fff}.card-footnote{text-align:center;color:#b7b7b7;font-size:11px;margin:7px 0 0}.detail-panel{margin-top:20px;padding:22px}.detail-intro{display:flex;gap:20px;align-items:start}.detail-photo{width:130px;height:130px;object-fit:cover;border-radius:10px}.detail-intro h2{margin:8px 0;font-size:22px}.detail-intro h2 strong{color:#ffd700}.detail-intro p{font-size:13px;margin:7px 0;color:#a9c2cb}.detail-intro b{color:#00ffaa}.detail-panel h3{font-size:17px;margin:24px 0 12px}.story{font-size:14px;line-height:1.8;color:#d1e5eb}.top-row{border-top:1px solid #2a3948;padding:12px 0}.top-row span{color:#d8edf0}.top-row b{float:right;color:#00ffaa}.top-row p{font-size:13px;color:#8eabb5;margin:8px 0 0}.detail-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}@media(max-width:600px){.result-page{padding:14px 0 30px}.scan-visual{height:clamp(280px,70vw,390px)}.detail-intro{gap:13px}.detail-photo{width:95px;height:95px}.detail-intro h2{font-size:18px}.detail-panel{padding:16px}.detail-actions .btn{flex:1}}
+.shape-score{margin:14px 0;padding:14px;border:1px solid #367565;border-radius:10px;background:#142722}
+.shape-heading{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px}
+.shape-heading h2{margin:0;font-size:17px}
+.shape-heading strong{color:#21d9a4;font-size:23px}
+.shape-heading small{color:#bfd1ca;font-size:12px;font-weight:400}
+.shape-score p{margin:8px 0 12px;color:#c8dbd4;font-size:12px;line-height:1.6}
+.shape-score p:last-child{margin-bottom:0}
 </style>
