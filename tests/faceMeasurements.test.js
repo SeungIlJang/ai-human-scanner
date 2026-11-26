@@ -45,3 +45,23 @@ test('the nose explanation changes when its width changes relative to the eye ga
   delete wider[98]
   assert.equal(nose(wider), null)
 })
+
+test('all nine areas have explanations when their landmark data is available', () => {
+  const complete = points.slice()
+  for (const [index, x, y] of [
+    [107, .43, .38], [70, .3, .35], [336, .57, .38], [300, .7, .35],
+    [13, .5, .67], [14, .5, .69], [61, .39, .65], [291, .61, .65],
+    [149, .42, .75], [378, .58, .75]
+  ]) complete[index] = { x, y }
+  const groups = measureFaceDetails(complete, 1, 90)
+  const explanations = new Map(groups.filter(group => group.interpretation).map(group => [group.title, group.interpretation]))
+  assert.deepEqual([...explanations.keys()], ['얼굴형', '이마', '눈', '눈썹', '코', '입', '턱', '광대', '전체'])
+  assert.match(explanations.get('이마').impression, /비슷해서/)
+  assert.match(explanations.get('턱').impression, /턱끝으로 윤곽이 모여/)
+  assert.match(explanations.get('광대').impression, /앞쪽으로 추정/)
+  assert.match(explanations.get('전체').measurement, /90점/)
+
+  complete[9] = { ...points[9], y: .46 }
+  const differentForehead = measureFaceDetails(complete, 1, 90).find(group => group.title === '이마')
+  assert.match(differentForehead.interpretation.impression, /가운데 구역보다 길어서/)
+})

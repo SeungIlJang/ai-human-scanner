@@ -41,7 +41,7 @@ function restart() {
         </template>
         <p v-else>점수를 계산할 얼굴 특징점이 부족합니다. 얼굴 전체가 보이는 사진으로 다시 시도해 주세요.</p>
         <details v-if="interpretations.length" class="shape-details">
-          <summary>관상 상세설명 · 코, 눈, 입</summary>
+          <summary>관상 상세설명 · {{ interpretations.length }}개 항목</summary>
           <p>아래 문장은 이 사진의 이목구비에서 보이는 인상을 풀어 쓴 재미용 해석입니다.</p>
           <div class="interpretations">
             <section v-for="group in interpretations" :key="group.title" class="interpretation">
