@@ -26,6 +26,13 @@ test('auto capture restarts its hold when face moves abruptly', () => {
   const face = faceFraming(centered, 400, 500, 400, 500)
   const shifted = { ...face, box: { ...face.box, x: face.box.x + .08 } }
   gate.update(face, 100)
-  gate.update(face, 600)
-  assert.equal(gate.update(shifted, 900), false)
+  gate.update(face, 400)
+  gate.update(face, 650)
+  assert.equal(gate.update(shifted, 800), false)
+})
+
+test('an interrupted stream cannot satisfy the hold using stale samples', () => {
+  const gate = createAutoCaptureGate(700, 4)
+  const face = faceFraming(centered, 400, 500, 400, 500)
+  for (const time of [100, 220, 350, 1000]) assert.equal(gate.update(face, time), false)
 })

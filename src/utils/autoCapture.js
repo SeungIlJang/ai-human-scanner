@@ -18,14 +18,15 @@ export function faceFraming(points, sourceWidth, sourceHeight, viewWidth, viewHe
 }
 
 export function createAutoCaptureGate(holdMs = 700, minSamples = 4) {
-  let since = 0, samples = 0, anchor = null
+  let since = 0, lastSample = 0, samples = 0, anchor = null
   return {
-    reset() { since = 0; samples = 0; anchor = null },
+    reset() { since = 0; lastSample = 0; samples = 0; anchor = null },
     update(framing, now) {
       if (!framing.ready) { this.reset(); return false }
       const box = framing.box
       const moved = anchor && (Math.abs(box.x - anchor.x) > .035 || Math.abs(box.y - anchor.y) > .035 || Math.abs(box.width - anchor.width) > .07 || Math.abs(box.height - anchor.height) > .07)
-      if (!since || moved) { since = now; samples = 0; anchor = box }
+      if (!anchor || moved || now - lastSample > 400) { since = now; samples = 0; anchor = box }
+      lastSample = now
       samples++
       return samples >= minSamples && now - since >= holdMs
     }

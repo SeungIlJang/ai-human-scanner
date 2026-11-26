@@ -7,7 +7,12 @@ export async function getDetector(mode = 'IMAGE') {
   if (!detector) {
     if (!loading) loading = (async () => {
       const wasm = await FilesetResolver.forVisionTasks(`${import.meta.env.BASE_URL}wasm`)
-      return FaceLandmarker.createFromOptions(wasm, { baseOptions: { modelAssetPath: `${import.meta.env.BASE_URL}models/face_landmarker.task`, delegate: 'CPU' }, runningMode: 'IMAGE', numFaces: 2, minFaceDetectionConfidence: .5, minFacePresenceConfidence: .5, minTrackingConfidence: .5 })
+      return FaceLandmarker.createFromOptions(wasm, {
+        baseOptions: { modelAssetPath: `${import.meta.env.BASE_URL}models/face_landmarker.task`, delegate: 'CPU' },
+        runningMode: 'IMAGE',
+        numFaces: 2,
+        outputFacialTransformationMatrixes: true
+      })
     })()
     try { detector = await loading }
     catch (error) { loading = null; throw error }
