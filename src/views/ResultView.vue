@@ -5,6 +5,7 @@ import { session, resetSession } from '../stores/session.js'
 import traditions from '../data/physiognomy-sources.json'
 import FaceMesh from '../components/FaceMesh.vue'
 import ScoreBar from '../components/ScoreBar.vue'
+import InstallPrompt from '../components/InstallPrompt.vue'
 
 const router = useRouter()
 const scores = computed(() => session.result?.scores)
@@ -18,22 +19,59 @@ const featuredReadings = computed(() => {
 const otherReadings = computed(() => (scores.value?.readings ?? []).filter(item => !featuredReadings.value.includes(item)))
 const interpretations = computed(() => measurements.value?.filter(group => group.interpretation) ?? [])
 
-const shareStatus = ref('')
-async function share() {
-  const lines = scores.value.highlights.map(item => `${item.label}: ${item.unit ? item.value.toLocaleString('ko-KR') + item.unit : item.value}`)
-  const url = location.href.split('#')[0]
-  const text = ['모두의 인성측정으로 본 내 관상 결과 (재미용)', ...lines].join('\n')
-  try {
-    if (navigator.share) await navigator.share({ title: '모두의 인성측정', text, url })
-    else {
-      await navigator.clipboard.writeText(`${text}\n${url}`)
-      shareStatus.value = '결과를 클립보드에 복사했어요.'
-    }
-  } catch (error) {
+const shareStatus = ref(''), sharing = ref(false)
+const site = location.href.split('#')[0]
+const stat = label => scores.value.highlights.find(item => item.label === label).value
+// Each animal type has its own page so that the link preview shows that type.
+const shareUrl = () => `${site}s/${scores.value.animal.slug}.html`
+function shareText() {
+  const { animal, job } = scores.value
+  return [
+    `나 인성 ${stat('인성 점수')}점 나왔어 ${animal.emoji} ${animal.name}이래!`,
+    `전생엔 ${job}, 평생 거짓말은 ${stat('거짓말 횟수').toLocaleString('ko-KR')}번 한대 ㅋㅋ`,
+    '너는 몇 점인지 얼굴만 찍어 봐 👇'
+  ].join('\n')
+}
+async function run(action) {
+  if (sharing.value) return
+  sharing.value = true
+  shareStatus.value = ''
+  try { await action() } catch (error) {
     // Closing the share sheet is not an error.
     if (error.name !== 'AbortError') shareStatus.value = '공유하지 못했습니다. 화면을 캡처해서 공유해 주세요.'
-  }
+  } finally { sharing.value = false }
 }
+const shareLink = () => run(async () => {
+  const text = shareText(), url = shareUrl()
+  // No title: chat apps prepend it to the text, which repeats the app name.
+  if (navigator.share) await navigator.share({ text, url })
+  else {
+    await navigator.clipboard.writeText(`${text}\n${url}`)
+    shareStatus.value = '공유 문구와 링크를 복사했어요. 붙여넣기 해 주세요.'
+  }
+})
+const shareImage = () => run(async () => {
+  const { shareCardFile } = await import('../utils/shareCard.js')
+  const { animal, job } = scores.value
+  const file = await shareCardFile({
+    animal, job, siteLabel: site.replace(/^https?:\/\//, '').replace(/\/$/, ''),
+    stats: [
+      { label: '인성 점수', value: `${stat('인성 점수')}점` },
+      { label: '거짓말 횟수', value: `${stat('거짓말 횟수').toLocaleString('ko-KR')}회` },
+      { label: '못된 점수', value: `${stat('못된 점수')}점` },
+      { label: '잔머리 지수', value: `${stat('잔머리 지수')}점` }
+    ]
+  })
+  if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], text: `${shareText()}\n${shareUrl()}` })
+  else {
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(file)
+    link.download = file.name
+    link.click()
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000)
+    shareStatus.value = '결과 이미지를 저장했어요.'
+  }
+})
 
 function restart() {
   resetSession()
@@ -60,6 +98,11 @@ function restart() {
               <dd v-else class="result-text">{{ item.value }}</dd>
             </div>
           </dl>
+          <div class="share-actions">
+            <button class="share-button" :disabled="sharing" @click="shareLink">친구에게 공유하기</button>
+            <button class="share-button share-secondary" :disabled="sharing" @click="shareImage">이미지로 공유</button>
+          </div>
+          <p class="share-status" role="status">{{ shareStatus }}</p>
           <p>점수와 유형은 재미용 결과입니다. 실제 인성이나 행동을 평가하는 수치가 아닙니다.</p>
           <div class="shape-details">
             <h3 class="readings-title">관상 풀이 · 눈에 띄는 {{ featuredReadings.length }}곳</h3>
@@ -150,15 +193,14 @@ function restart() {
           </template>
         </div>
       </details>
-      <button v-if="scores" class="share-button" @click="share">결과 공유하기</button>
-      <p class="share-status" role="status">{{ shareStatus }}</p>
+      <InstallPrompt />
       <button class="restart-button" @click="restart">◌ &nbsp; 다시 분석하기</button>
     </div>
   </section>
 </template>
 
 <style scoped>
-.result-page{padding:8px 0 40px;max-width:700px;margin:auto}.scanner-card{background:#202020;border:1px solid #444;border-radius:13px;padding:14px 13px 16px;color:#f5f5f5}.scan-visual{height:clamp(300px,55vw,410px);position:relative;overflow:hidden;border-radius:9px;background-color:#071019;background-image:linear-gradient(#00c99b15 1px,transparent 1px),linear-gradient(90deg,#00c99b15 1px,transparent 1px);background-size:34px 34px}.scan-visual canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1}.visual-label{position:absolute;z-index:3;color:#17e5b5;font-size:15px}.visual-label{left:20px;top:16px;margin:0;font-weight:600}.scan-beam{position:absolute;z-index:2;top:49%;left:25%;right:25%;height:3px;background:#18e7b6;box-shadow:0 0 10px 3px #14dba877;animation:pulse 2s ease-in-out infinite alternate}@keyframes pulse{to{opacity:.35}}.featured-scores{display:grid;gap:12px}.featured-scores :deep(.score-item){padding:0;background:transparent;border-radius:0}.featured-scores :deep(.score-item-head){font-size:13px;margin-bottom:6px}.featured-scores :deep(.score-item-head b){color:#eee}.featured-scores :deep(.score-track){background:#414149;height:6px}.restart-button{width:100%;border:0;background:#f2f2f2;color:#222;border-radius:22px;min-height:31px;font-size:13px;cursor:pointer}.restart-button:hover{background:#fff}@media(max-width:600px){.result-page{padding:8px 0 30px}.scan-visual{height:clamp(180px,44vh,390px);height:clamp(180px,44svh,390px)}}
+.result-page{padding:8px 0 40px;max-width:700px;margin:auto}.scanner-card{background:#202020;border:1px solid #444;border-radius:13px;padding:14px 13px 16px;color:#f5f5f5}.scan-visual{height:clamp(300px,55vw,410px);position:relative;overflow:hidden;border-radius:9px;background-color:#071019;background-image:linear-gradient(#00c99b15 1px,transparent 1px),linear-gradient(90deg,#00c99b15 1px,transparent 1px);background-size:34px 34px}.scan-visual canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1}.visual-label{position:absolute;z-index:3;color:#17e5b5;font-size:15px}.visual-label{left:20px;top:16px;margin:0;font-weight:600}.scan-beam{position:absolute;z-index:2;top:49%;left:25%;right:25%;height:3px;background:#18e7b6;box-shadow:0 0 10px 3px #14dba877;animation:pulse 2s ease-in-out infinite alternate}@keyframes pulse{to{opacity:.35}}.featured-scores{display:grid;gap:12px}.featured-scores :deep(.score-item){padding:0;background:transparent;border-radius:0}.featured-scores :deep(.score-item-head){font-size:13px;margin-bottom:6px}.featured-scores :deep(.score-item-head b){color:#eee}.featured-scores :deep(.score-track){background:#414149;height:6px}.restart-button{margin-top:14px;width:100%;border:0;background:#f2f2f2;color:#222;border-radius:22px;min-height:31px;font-size:13px;cursor:pointer}.restart-button:hover{background:#fff}@media(max-width:600px){.result-page{padding:8px 0 30px}.scan-visual{height:clamp(180px,44vh,390px);height:clamp(180px,44svh,390px)}}
 .shape-score{margin:14px 0;padding:14px;border:1px solid #367565;border-radius:10px;background:#142722}
 .result-highlights{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 8px}
 .result-highlights div{padding:9px 10px;border:1px solid #346354;border-radius:8px;background:#1b342d}
@@ -202,6 +244,9 @@ function restart() {
 .tradition-list{padding-left:19px;color:#c8dbd4;font-size:13px;line-height:1.6}
 .tradition-list a{display:block;text-decoration:underline;color:#81f5d1}
 .share-button{width:100%;min-height:48px;border:0;border-radius:8px;background:#21d9a4;color:#06231b;font-size:15px;font-weight:800;cursor:pointer}
+.share-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.share-secondary{background:#1b342d;color:#6af3c8;border:1px solid #21d9a4}
+.share-button:disabled{opacity:.6}
 .share-status{min-height:18px;margin:6px 0;color:#c8dbd4;font-size:12px;text-align:center}
 @media(max-width:540px){.measurement-grid{grid-template-columns:1fr}}
 </style>

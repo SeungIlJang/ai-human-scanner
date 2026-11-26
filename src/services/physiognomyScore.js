@@ -59,6 +59,8 @@ export function createPhysiognomyScores(groups, data = ruleData) {
   const job = strongest(data.jobs, item => total(item.trait))
   return {
     readings,
+    animal: { name: animal.name, slug: animal.slug, emoji: animal.emoji },
+    job: job.name,
     highlights: [
       { label: '인성 점수', value: points('kindness'), unit: '점' },
       { label: '거짓말 횟수', value: Math.max(0, Math.round(data.base.lies + total('lies'))), unit: '회' },

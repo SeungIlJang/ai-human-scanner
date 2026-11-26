@@ -2,6 +2,7 @@
 const APP_CACHE = 'ai-human-scanner-app-__BUILD_ID__'
 const RUNTIME_CACHE = 'ai-human-scanner-runtime-__RUNTIME_ID__'
 const root = new URL(self.registration.scope)
+const isAppShell = url => url.pathname === root.pathname || url.pathname === root.pathname + 'index.html'
 const isRuntimeFile = url => ['models/', 'wasm/'].some(dir => url.pathname.startsWith(root.pathname + dir))
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(APP_CACHE).then(cache => cache.addAll([root.href, new URL('manifest.webmanifest', root).href, new URL('icons/icon.svg', root).href])))
@@ -16,7 +17,7 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET' || url.origin !== root.origin || !url.pathname.startsWith(root.pathname)) return
   if (request.mode === 'navigate') {
     event.respondWith(fetch(request).then(response => {
-      if (response.ok) { const copy = response.clone(); event.waitUntil(caches.open(APP_CACHE).then(cache => cache.put(root.href, copy))) }
+      if (response.ok && isAppShell(url)) { const copy = response.clone(); event.waitUntil(caches.open(APP_CACHE).then(cache => cache.put(root.href, copy))) }
       return response
     }).catch(() => caches.match(root.href)))
     return

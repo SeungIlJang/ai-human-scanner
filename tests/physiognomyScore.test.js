@@ -106,3 +106,16 @@ test('a missing required measurement gives no score', () => {
   const { symmetry, ...withoutBalance } = reference
   assert.ok(score(withoutBalance))
 })
+
+test('every animal type has what a shared link needs: a page name, an emoji and a preview image', async () => {
+  const { existsSync } = await import('node:fs')
+  for (const animal of rules.animals) {
+    assert.match(animal.slug, /^[a-z]+$/, animal.name)
+    assert.ok(animal.emoji, animal.name)
+    assert.ok(existsSync(new URL(`../public/share/${animal.slug}.png`, import.meta.url)), `${animal.slug}.png`)
+  }
+  const result = score(reference)
+  assert.deepEqual(Object.keys(result.animal), ['name', 'slug', 'emoji'])
+  assert.equal(result.animal.name, value(result, '동물 유형'))
+  assert.equal(result.job, value(result, '전생 직업'))
+})
