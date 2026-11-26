@@ -201,37 +201,36 @@ onBeforeUnmount(() => { active = false; ++run; releaseCamera() })
 </script>
 
 <template>
-  <section>
-    <div class="page-head"><div class="eyebrow">LIVE FACE CAPTURE</div><h1>카메라 스캔</h1><p class="muted">얼굴이 안정적으로 인식되면 자동으로 촬영합니다.</p></div>
-    <div class="camera-layout">
-      <div ref="frame" class="camera-frame glow">
-        <video ref="video" autoplay muted playsinline :style="{ transform: facing === 'user' ? 'scaleX(-1)' : '' }"></video>
-        <FaceMesh :landmarks="faces" :mirrored="facing === 'user'" :source-width="sourceSize.width" :source-height="sourceSize.height" />
-        <div class="camera-hint" role="status" aria-atomic="true" :class="{ 'camera-hint-error': status.includes('오류') || status.includes('거부') }">
-          {{ status }}
-        </div>
-      </div>
-      <div class="camera-controls panel">
-        <span class="badge">● LOCAL CAMERA</span><h2>촬영 준비</h2>
-        <p class="muted">얼굴 전체를 화면 중앙에 맞추고 잠시 움직이지 마세요. 자동 촬영이 어려우면 아래 버튼을 누를 수 있습니다.</p>
-        <div class="notice">사진과 얼굴 특징점은 기기 밖으로 전송되지 않습니다. 촬영 대상자의 동의를 확인해 주세요.</div>
-        <div class="action-row"><button class="btn neon-btn" :disabled="faces.length !== 1 || busy" @click="shoot()">◉ &nbsp; 얼굴 촬영</button><button class="btn outline-btn" :disabled="busy" @click="switchCamera">카메라 전환</button><router-link class="btn text-btn" to="/">닫기</router-link></div>
+  <section class="camera-page">
+    <div class="camera-heading">
+      <h1>카메라 스캔</h1>
+      <router-link class="btn text-btn" to="/">닫기</router-link>
+    </div>
+    <div ref="frame" class="camera-frame glow">
+      <video ref="video" autoplay muted playsinline :style="{ transform: facing === 'user' ? 'scaleX(-1)' : '' }"></video>
+      <FaceMesh :landmarks="faces" :mirrored="facing === 'user'" :source-width="sourceSize.width" :source-height="sourceSize.height" />
+      <div class="camera-hint" role="status" aria-atomic="true" :class="{ 'camera-hint-error': status.includes('오류') || status.includes('거부') }">
+        {{ status }}
       </div>
     </div>
+    <div class="camera-actions">
+      <button class="btn neon-btn" :disabled="faces.length !== 1 || busy" @click="shoot()">얼굴 촬영</button>
+      <button class="btn outline-btn" :disabled="busy" @click="switchCamera">카메라 전환</button>
+    </div>
+    <p class="camera-caption muted">얼굴이 안정적으로 인식되면 자동으로 촬영합니다.</p>
+    <p class="camera-caption muted">사진은 기기에서 처리합니다. 촬영 대상자의 동의를 확인해 주세요.</p>
   </section>
 </template>
 <style scoped>
-.camera-layout{display:grid;grid-template-columns:minmax(0,520px) 1fr;gap:28px;align-items:center}
-.camera-frame{width:min(100%,52.8vh)}
+.camera-page{width:min(100%,520px,max(160px,calc(80vh - 104px)));margin:0 auto;padding:8px 0 16px}
+.camera-page{width:min(100%,520px,max(160px,calc(80svh - 104px)))}
+.camera-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
+.camera-heading h1{margin:0;font-size:20px}
+.camera-heading .btn{padding:0 10px}
+.camera-frame{width:100%;max-height:none}
 .camera-hint{position:absolute;z-index:5;inset:auto 12px 12px;padding:10px 12px;border:1px solid #00ffaa70;border-radius:10px;background:#061218ee;color:#eafbf5;font-size:14px;font-weight:600;line-height:1.5;text-align:center;pointer-events:none}
 .camera-hint-error{border-color:#ff6e7c;color:#ffd7db}
-.camera-controls{padding:28px}
-.camera-controls h2{font-size:27px;margin:24px 0 8px}
-.camera-controls .muted{line-height:1.8}
-.camera-controls .notice{margin:24px 0}
-@media(max-width:760px){
-  .camera-layout{grid-template-columns:1fr}
-  .camera-frame{width:min(100%,48vh)}
-  .camera-controls{padding:20px}
-}
+.camera-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
+.camera-actions .btn{padding:0 4px;font-size:14px}
+.camera-caption{margin:8px 0 0;font-size:12px;line-height:1.5;text-align:center}
 </style>
