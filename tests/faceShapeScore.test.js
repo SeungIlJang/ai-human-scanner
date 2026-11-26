@@ -44,5 +44,11 @@ test('the main character uses the measured face and is repeatable', () => {
   const newCharacter = createFaceCharacter(measureFaceShape(modified, 1.2))
   assert.deepEqual(newCharacter.stats.map(s => s.value), [55, 100, 79])
   assert.equal(newCharacter.total, 78)
+  assert.notEqual(newCharacter.profile.seed, character.profile.seed)
+  assert.notDeepEqual(newCharacter.highlights, character.highlights)
+  assert.deepEqual(character.highlights.map(item => [item.label, item.unit]), [
+    ['인성 점수', '점'], ['거짓말 횟수', '회'], ['못된 짓 횟수', '회'], ['바람둥이 지수', '점']
+  ])
+  assert.ok(character.highlights[2].value >= 0 && character.highlights[2].value <= 300)
   assert.equal(createFaceCharacter(null), null)
 })

@@ -1,3 +1,5 @@
+import { createScores } from './scoreEngine.js'
+
 // These ranges are game rules. They are not population averages or personality measures.
 const rules = [
   { label: '정밀', title: '별빛 정찰자', balance: 'eyes', ratio: 'eyeGapToWidth', ratioLabel: '눈 간격 / 얼굴 너비', min: 15, max: 36 },
@@ -19,5 +21,15 @@ export function createFaceCharacter(shape) {
   }
   const specialty = stats.reduce((best, stat) => stat.value > best.value ? stat : best)
   const total = Math.round(stats.reduce((sum, stat) => sum + stat.value, 0) / stats.length)
-  return { title: specialty.title, total, stats }
+  // Use the measurements as a seed for a fictional profile, not as predictors of behavior.
+  const seed = stats.flatMap(stat => [stat.measuredBalance, stat.measuredRatio])
+    .reduce((hash, value) => Math.imul(hash ^ value, 16777619), 2166136261) >>> 0
+  const profile = createScores(seed)
+  const highlights = [
+    { label: '인성 점수', value: profile.scores.kindness, unit: '점' },
+    { label: '거짓말 횟수', value: profile.lieCount, unit: '회' },
+    { label: '못된 짓 횟수', value: Math.round(3 * profile.scores.mischief), unit: '회' },
+    { label: '바람둥이 지수', value: profile.scores.flirt, unit: '점' }
+  ]
+  return { title: specialty.title, total, stats, profile, highlights }
 }

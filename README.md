@@ -1,6 +1,6 @@
 # AI HUMAN SCANNER · AI 인간 분석기
 
-얼굴 특징점을 기기 안에서 시각화하고, 얼굴 생김새와 무관한 시드 난수로 오락용 캐릭터 카드를 만드는 Vue 3 모바일 웹앱입니다. 실제 인성, 성격, 거짓말 횟수는 측정하지 않습니다.
+얼굴 특징점을 기기 안에서 시각화하고, 얼굴 비율로 오락용 가상 캐릭터 카드를 만드는 Vue 3 모바일 웹앱입니다. 실제 인성, 성격, 거짓말 횟수는 측정하지 않습니다.
 
 ## 실행
 
@@ -27,11 +27,11 @@ npm run preview
 - 사진 속 눈 너비, 볼 간격, 입꼬리 간격의 좌우 균형을 평균한 관상 스캔 점수와 얼굴 비율 표시
 - 관상 기반 캐릭터 카드: 눈, 볼, 입의 균형과 비율을 게임 규칙으로 환산한 정밀·방어·마력 점수
 - 4초 스캔, 단계 메시지, 완료음, 점수 카운트 애니메이션
-- 시드 기반 가상 점수 15종, 가상의 거짓말 횟수·전생 직업·재산, 등급과 해설
+- 인성 점수, 거짓말 횟수, 못된 짓 횟수, 바람둥이 지수를 가상 캐릭터 결과의 상단에 표시
 - PNG 미리보기·저장 및 Web Share API 이미지 공유 (미지원 브라우저는 다운로드)
 - Hash Router, GitHub Pages 자동 배포, 요청 시 로컬 모델/WASM 캐시
 
-점수 항목·범위·가중치는 `src/data/score-config.json`, 해설은 `src/data/descriptions.json`, 직업과 캐릭터 이름은 `src/data/character-types.json`에서 수정합니다. 점수 생성 코드는 `src/services/scoreEngine.js`입니다. 이미지·특징점은 시드 생성에 쓰지 않습니다.
+점수 항목·범위·가중치는 `src/data/score-config.json`, 해설은 `src/data/descriptions.json`, 직업과 캐릭터 이름은 `src/data/character-types.json`에서 수정합니다. `src/services/faceCharacter.js`는 사진 속 비율과 균형을 재현 가능한 게임 시드로 변환하고, `src/services/scoreEngine.js`는 시드로 가상 결과를 생성합니다.
 
 ## 경량화와 오프라인 사용
 

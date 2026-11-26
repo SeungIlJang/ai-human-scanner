@@ -4,8 +4,6 @@ import { useRouter } from 'vue-router'
 import { session, resetSession } from '../stores/session.js'
 import { config } from '../services/scoreEngine.js'
 import { summary, describe } from '../services/descriptionEngine.js'
-import { measureFaceShape } from '../services/faceShapeScore.js'
-import { createFaceCharacter } from '../services/faceCharacter.js'
 import { measureFaceDetails } from '../services/faceMeasurements.js'
 import traditions from '../data/physiognomy-sources.json'
 import { makeShareImage, downloadBlob, DISCLAIMER } from '../services/shareService.js'
@@ -14,11 +12,12 @@ import ScoreBar from '../components/ScoreBar.vue'
 
 const router = useRouter()
 const preview = ref(''), blob = ref(null), error = ref(''), busy = ref(false)
-const result = computed(() => session.result)
-const faceShape = computed(() => measureFaceShape(session.landmarks?.[0], session.imageAspect))
-const character = computed(() => createFaceCharacter(faceShape.value))
+const faceShape = computed(() => session.result?.faceShape)
+const character = computed(() => session.result?.character)
+const result = computed(() => character.value?.profile)
+const extraScores = config.scores.filter(item => !['kindness', 'mischief', 'flirt'].includes(item.key))
 const measurements = computed(() => measureFaceDetails(session.landmarks?.[0], session.imageAspect, faceShape.value?.total))
-const top = computed(() => config.scores.map(item => ({ ...item, value: result.value.scores[item.key] })).sort((a, b) => b.value - a.value).slice(0, 3))
+const top = computed(() => extraScores.map(item => ({ ...item, value: result.value.scores[item.key] })).sort((a, b) => b.value - a.value).slice(0, 3))
 const copy = computed(() => summary(result.value))
 onBeforeUnmount(closePreview)
 
@@ -50,6 +49,19 @@ function closePreview() { if (preview.value) URL.revokeObjectURL(preview.value);
   <section class="result-page">
     <div class="scanner-card">
       <h1 class="scanner-title">AI HUMAN SCANNER</h1>
+      <section v-if="character" class="character-results" aria-labelledby="character-results-title">
+        <h2 id="character-results-title">관상 캐릭터 결과</h2>
+        <p>얼굴 측정값으로 만든 가상 캐릭터의 점수와 기록입니다.</p>
+        <dl class="result-highlights">
+          <div v-for="item in character.highlights" :key="item.label">
+            <dt>{{ item.label }}</dt>
+            <dd>{{ item.value.toLocaleString('ko-KR') }}<small>{{ item.unit }}</small></dd>
+          </div>
+        </dl>
+        <p class="fiction-note">오락용 가상 수치이며 실제 인성이나 행동을 측정한 값이 아닙니다.</p>
+        <button class="btn neon-btn" :disabled="busy" @click="prepare">캐릭터 카드 공유</button>
+        <p v-if="error" class="error" role="alert">{{ error }}</p>
+      </section>
       <div v-if="character" class="character-head">
         <p>관상 기반 캐릭터 점수</p>
         <h2>{{ character.title }}</h2>
@@ -71,8 +83,6 @@ function closePreview() { if (preview.value) URL.revokeObjectURL(preview.value);
           </div>
         </div>
         <p>얼굴 특징을 게임 규칙으로 해석한 오락용 능력치입니다.</p>
-        <button class="btn neon-btn" :disabled="busy" @click="prepare">캐릭터 카드 공유</button>
-        <p v-if="error" class="error" role="alert">{{ error }}</p>
       </section>
       <p v-else class="result-notice">이 사진에서는 캐릭터 점수를 계산할 얼굴 특징점이 부족합니다. 얼굴 전체가 보이는 사진으로 다시 시도해 주세요.</p>
       <section class="shape-score" aria-labelledby="shape-title">
@@ -121,15 +131,15 @@ function closePreview() { if (preview.value) URL.revokeObjectURL(preview.value);
       <button class="restart-button" @click="restart">◌ &nbsp; 다시 분석하기</button>
     </div>
 
-    <details class="detail-panel panel">
-      <summary>무작위 보너스 결과 보기</summary>
+    <details v-if="result" class="detail-panel panel">
+      <summary>추가 캐릭터 정보</summary>
       <p class="muted">{{ DISCLAIMER }}</p>
       <div class="detail-intro">
         <img :src="session.image" alt="선택한 사진" class="detail-photo" />
-        <div><h2>{{ result.title }} <strong>{{ result.grade }}</strong></h2><p>전생 직업 · {{ result.job }}</p><p>전생 재산 · {{ (result.seed % 990 + 10).toLocaleString() }}만 별코인</p><p>가상 누적 거짓말 · {{ result.lieCount.toLocaleString() }}회</p></div>
+        <div><h2>{{ result.title }} <strong>{{ result.grade }}</strong></h2><p>전생 직업 · {{ result.job }}</p><p>전생 재산 · {{ (result.seed % 990 + 10).toLocaleString() }}만 별코인</p></div>
       </div>
       <h3>가상 능력치</h3>
-      <div class="score-grid"><ScoreBar v-for="item in config.scores" :key="item.key" :label="item.label" :value="result.scores[item.key]" /></div>
+      <div class="score-grid"><ScoreBar v-for="item in extraScores" :key="item.key" :label="item.label" :value="result.scores[item.key]" /></div>
       <h3>캐릭터 해설</h3><p class="story">{{ copy }}</p>
       <h3>가장 높은 능력치 TOP 3</h3>
       <div v-for="(item, index) in top" :key="item.key" class="top-row"><span>0{{ index + 1 }} &nbsp; {{ item.label }}</span><b>{{ item.value }}점</b><p>{{ describe(result, item.key) }}</p></div>
@@ -142,6 +152,16 @@ function closePreview() { if (preview.value) URL.revokeObjectURL(preview.value);
 <style scoped>
 .result-page{padding:24px 0 52px;max-width:700px;margin:auto}.scanner-card{background:#202020;border:1px solid #444;border-radius:13px;padding:14px 13px 16px;color:#f5f5f5}.scanner-title{text-align:center;font-size:17px;line-height:1.4;margin:0 0 5px;font-weight:800}.result-notice{text-align:center;color:#bcc9c6;font-size:12px;line-height:1.5;margin:0 0 12px}.scan-visual{height:clamp(300px,55vw,410px);position:relative;overflow:hidden;border-radius:9px;background-color:#071019;background-image:linear-gradient(#00c99b15 1px,transparent 1px),linear-gradient(90deg,#00c99b15 1px,transparent 1px);background-size:34px 34px}.scan-visual canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1}.visual-label,.visual-complete{position:absolute;z-index:3;color:#17e5b5;font-size:15px}.visual-label{left:25px;top:20px}.visual-complete{bottom:17px;left:0;right:0;text-align:center;font-size:17px}.scan-beam{position:absolute;z-index:2;top:49%;left:25%;right:25%;height:3px;background:#18e7b6;box-shadow:0 0 10px 3px #14dba877;animation:pulse 2s ease-in-out infinite alternate}@keyframes pulse{to{opacity:.35}}.featured-scores{display:grid;gap:12px}.featured-scores :deep(.score-item){padding:0;background:transparent;border-radius:0}.featured-scores :deep(.score-item-head){font-size:13px;margin-bottom:6px}.featured-scores :deep(.score-item-head b){color:#eee}.featured-scores :deep(.score-track){background:#414149;height:6px}.restart-button{width:100%;border:0;background:#f2f2f2;color:#222;border-radius:22px;min-height:31px;font-size:13px;cursor:pointer}.restart-button:hover{background:#fff}.detail-panel{margin-top:20px;padding:22px}.detail-intro{display:flex;gap:20px;align-items:start}.detail-photo{width:130px;height:130px;object-fit:cover;border-radius:10px}.detail-intro h2{margin:8px 0;font-size:22px}.detail-intro h2 strong{color:#ffd700}.detail-intro p{font-size:13px;margin:7px 0;color:#a9c2cb}.detail-intro b{color:#00ffaa}.detail-panel h3{font-size:17px;margin:24px 0 12px}.story{font-size:14px;line-height:1.8;color:#d1e5eb}.top-row{border-top:1px solid #2a3948;padding:12px 0}.top-row span{color:#d8edf0}.top-row b{float:right;color:#00ffaa}.top-row p{font-size:13px;color:#8eabb5;margin:8px 0 0}@media(max-width:600px){.result-page{padding:14px 0 30px}.scan-visual{height:clamp(280px,70vw,390px)}.detail-intro{gap:13px}.detail-photo{width:95px;height:95px}.detail-intro h2{font-size:18px}.detail-panel{padding:16px}}
 .shape-score{margin:14px 0;padding:14px;border:1px solid #367565;border-radius:10px;background:#142722}
+.character-results{margin:12px 0 16px;padding:14px;border:1px solid #367565;border-radius:10px;background:#142722}
+.character-results h2{margin:0;font-size:20px}
+.character-results p{margin:7px 0;color:#c8dbd4;font-size:12px;line-height:1.5}
+.character-results .error{color:#ff9ba4}
+.result-highlights{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 8px}
+.result-highlights div{padding:9px 10px;border:1px solid #346354;border-radius:8px;background:#1b342d}
+.result-highlights dt{font-size:13px;color:#e8f6f0}
+.result-highlights dd{margin:2px 0 0;color:#6af3c8;font-size:clamp(22px,6vw,34px);font-weight:800;font-variant-numeric:tabular-nums}
+.result-highlights small{margin-left:2px;font-size:13px}
+.character-results .btn{margin-top:5px}
 .shape-score h2{margin:0;font-size:17px}
 .character-head{text-align:center;padding:8px 0 16px}
 .character-head p{margin:0;color:#b8d9d1;font-size:14px}
