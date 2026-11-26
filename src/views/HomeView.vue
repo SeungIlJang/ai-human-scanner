@@ -1,8 +1,45 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { session, resetSession } from '../stores/session.js'
 const router = useRouter(), file = ref(null), busy = ref(false), error = ref('')
+const faceArt = ref(null)
+
+onMounted(() => {
+  const context = faceArt.value?.getContext('2d')
+  if (!context) return
+  context.scale(2, 2)
+  const outline = [[70, 12], [94, 19], [108, 37], [110, 59], [104, 82], [92, 102], [70, 115], [48, 102], [36, 82], [30, 59], [32, 37], [46, 19], [70, 12]]
+  const details = [
+    [[32, 37], [54, 35], [70, 43], [86, 35], [108, 37]],
+    [[30, 59], [49, 49], [59, 54], [49, 59], [39, 55]],
+    [[110, 59], [91, 49], [81, 54], [91, 59], [101, 55]],
+    [[70, 43], [62, 68], [70, 73], [78, 68], [70, 43]],
+    [[48, 102], [54, 86], [70, 81], [86, 86], [92, 102]],
+    [[54, 86], [70, 94], [86, 86]],
+    [[36, 82], [54, 86], [62, 68], [49, 59], [36, 82]],
+    [[104, 82], [86, 86], [78, 68], [91, 59], [104, 82]],
+    [[48, 102], [70, 103], [92, 102], [70, 115]]
+  ]
+  function trace(path) {
+    context.beginPath()
+    context.moveTo(...path[0])
+    for (const point of path.slice(1)) context.lineTo(...point)
+    context.stroke()
+  }
+  context.strokeStyle = '#5cffe0bd'
+  context.lineWidth = 1
+  trace(outline)
+  context.strokeStyle = '#42dfb66b'
+  context.lineWidth = .8
+  details.forEach(trace)
+  context.fillStyle = '#95ffe8'
+  for (const [x, y] of [[70, 12], [30, 59], [49, 49], [70, 43], [91, 49], [110, 59], [70, 73], [54, 86], [86, 86], [70, 115]]) {
+    context.beginPath()
+    context.arc(x, y, 1.5, 0, Math.PI * 2)
+    context.fill()
+  }
+})
 async function selectPhoto(event) {
   const chosen = event.target.files?.[0]; if (!chosen) return
   error.value = ''; if (!chosen.type.startsWith('image/')) { error.value='이미지 파일을 선택해 주세요.'; return }
@@ -18,7 +55,44 @@ async function selectPhoto(event) {
   finally { if(url) URL.revokeObjectURL(url); busy.value=false; event.target.value='' }
 }
 </script>
-<template><div class="home"><div class="grid-two hero"><div><div class="eyebrow">THE FUTURE OF FUN · 100% ON DEVICE</div><h1 class="display">당신의 얼굴,<br><span class="gradient">캐릭터가 되다.</span></h1><div class="home-actions"><router-link class="btn btn-large neon-btn" to="/camera">카메라로 시작</router-link><button class="btn btn-large outline-btn" :disabled="busy" @click="file.click()">사진 선택</button><input ref="file" type="file" accept="image/*" hidden @change="selectPhoto" /></div><p class="muted intro">사진 한 장으로 시작하는 4초간의 미래형 스캔. 얼굴 특징점을 찾아 화려한 HUD로 보여주고, 오락용 가상 캐릭터 카드를 만들어 드려요.</p><p v-if="error" class="error" role="alert">{{ error }}</p><div class="notice" style="margin-top:30px">재미용 가상 시뮬레이션입니다. 실제 인성, 성격, 거짓말 횟수를 측정한 결과가 아닙니다.<br>촬영 대상자의 동의를 받은 뒤 이용해 주세요.</div></div><div class="hero-art panel glow"><div class="art-corner top-left"></div><div class="art-corner bottom-right"></div><div class="art-ring ring-one"></div><div class="art-ring ring-two"></div><div class="art-face">◎</div><div class="art-label">FACE LANDMARKS <b>478</b><br>LOCAL ANALYSIS READY</div><span class="art-chip">// SCAN_01</span></div></div><section class="how"><div class="eyebrow">HOW IT WORKS</div><h2 class="section-title">3단계, 단 하나의 캐릭터</h2><div class="steps"><article class="panel"><span>01</span><h3>사진 준비</h3><p>카메라로 촬영하거나 갤러리에서 선택해요.</p></article><article class="panel"><span>02</span><h3>얼굴 스캔</h3><p>기기 안에서 얼굴 특징점을 찾아 시각화해요.</p></article><article class="panel"><span>03</span><h3>가상 결과</h3><p>얼굴과 무관한 난수로 재미있는 결과를 만들어요.</p></article></div></section></div></template>
-<style scoped>.hero{align-items:center;padding:65px 0 55px;grid-template-columns:1.1fr .9fr}.home-actions{display:flex;gap:10px;flex-wrap:wrap}.intro{font-size:16px;line-height:1.85;max-width:520px;margin:16px 0 0}.hero-art{height:500px;position:relative;overflow:hidden;display:grid;place-items:center;background:radial-gradient(circle,#10323b 0,#0d1827 38%,#0c1420 70%)}.hero-art:after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 5px,#00ffaa06 6px 7px);pointer-events:none}.art-ring{position:absolute;border:1px solid #00ffaa70;border-radius:50%;box-shadow:0 0 50px #00ffaa22,inset 0 0 50px #00ffaa18}.ring-one{width:330px;height:330px}.ring-two{width:260px;height:340px;border-style:dashed;transform:rotate(-20deg)}.art-face{font-size:230px;color:#00ffaa;line-height:1;text-shadow:0 0 50px #00ffaa88;opacity:.75}.art-label{position:absolute;left:23px;bottom:24px;color:#8be9db;font-size:12px;letter-spacing:.13em;line-height:1.8}.art-label b{color:#00ffaa}.art-chip{position:absolute;top:24px;right:20px;color:#00bfff;font-size:12px}.art-corner{position:absolute;width:48px;height:48px;border:2px solid #00ffaa}.top-left{top:20px;left:20px;border-right:0;border-bottom:0}.bottom-right{bottom:20px;right:20px;border-left:0;border-top:0}.how{padding:25px 0 60px}.how h2{margin-top:11px}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px}.steps article{padding:22px}.steps span{color:#00ffaa;font-size:12px;letter-spacing:.15em}.steps h3{font-size:18px;margin:14px 0 8px}.steps p{color:#91a6b5;font-size:14px;line-height:1.7;margin:0}@media(max-width:760px){.hero{grid-template-columns:1fr;padding:20px 0 26px;gap:20px}.hero .display{font-size:clamp(32px,8vw,47px);margin:12px 0 16px}.home-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.home-actions .btn{padding:0 8px;font-size:14px}.hero-art{height:320px}.ring-one{width:240px;height:240px}.ring-two{width:190px;height:260px}.art-face{font-size:170px}.steps{grid-template-columns:1fr}.how{padding-bottom:30px}}
-@media(min-width:761px) and (max-height:500px){.hero{align-items:start;padding-top:16px}.hero .display{font-size:42px;margin:10px 0 14px}.hero-art{height:70vh}}
+
+<template>
+  <div class="home">
+    <section class="home-hero" aria-labelledby="home-title">
+      <h1 id="home-title" class="display">당신의 얼굴,<br><span class="gradient">캐릭터가 되다.</span></h1>
+      <p class="hero-intro">얼굴을 스캔하고 나만의 캐릭터 카드를 만들어 보세요.</p>
+      <div class="home-actions">
+        <router-link class="btn btn-large neon-btn" to="/camera">카메라로 시작</router-link>
+        <button class="btn btn-large outline-btn" :disabled="busy" @click="file.click()">
+          {{ busy ? '사진 확인 중…' : '사진 선택' }}
+        </button>
+        <input ref="file" type="file" accept="image/*" hidden @change="selectPhoto" />
+      </div>
+      <p v-if="error" class="error" role="alert">{{ error }}</p>
+
+      <div class="hero-art" aria-hidden="true">
+        <div class="scan-reticle">
+          <canvas ref="faceArt" width="280" height="256"></canvas>
+        </div>
+      </div>
+
+      <p class="home-note">오락용 가상 결과입니다. 촬영 대상자의 동의를 받은 뒤 이용해 주세요.</p>
+    </section>
+  </div>
+</template>
+
+<style scoped>
+.home{padding:clamp(18px,4vw,48px) 0 32px}
+.home-hero{position:relative;max-width:720px;margin:0 auto;padding:clamp(18px,5vw,42px);text-align:center;border:1px solid #284852;border-radius:24px;background:radial-gradient(ellipse at 50% 0,#173b40 0,transparent 58%),#0d1724;box-shadow:0 18px 50px #02070e74}
+.home-hero .display{margin:0;font-size:clamp(32px,7vw,64px);line-height:1.1;letter-spacing:-.05em;overflow-wrap:normal;word-break:keep-all}
+.hero-intro{margin:14px auto 18px;max-width:32ch;color:#bbced6;font-size:clamp(13px,2.7vw,16px);line-height:1.6;word-break:keep-all}
+.home-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-width:420px;margin:auto}
+.home-actions .btn{padding:0 6px;min-height:48px;font-size:clamp(13px,2.7vw,15px);font-weight:700;word-break:keep-all}
+.home-actions .outline-btn{background:#102736;color:#f4f8ff!important;border-color:#426570!important}
+.hero-art{position:relative;display:grid;place-items:center;height:clamp(158px,32vw,230px);overflow:hidden;margin:18px 0 0;border:1px solid #23434b;border-radius:15px;background:radial-gradient(ellipse at center,#124043 0,transparent 73%),repeating-linear-gradient(0deg,#25d6a812 0 1px,transparent 1px 20px),repeating-linear-gradient(90deg,#25d6a812 0 1px,transparent 1px 20px),#0b1c29;background-position:center}
+.scan-reticle{position:relative;display:grid;place-items:center;width:clamp(132px,25vw,190px);aspect-ratio:1;border:1px solid #65efcd55;background:radial-gradient(circle,#34eabe14 0,transparent 75%);border-radius:50%}
+.scan-reticle::before{content:"";position:absolute;inset:8px;background:linear-gradient(#6bffe1,#6bffe1) left top/17px 2px,linear-gradient(#6bffe1,#6bffe1) left top/2px 17px,linear-gradient(#6bffe1,#6bffe1) right top/17px 2px,linear-gradient(#6bffe1,#6bffe1) right top/2px 17px,linear-gradient(#6bffe1,#6bffe1) left bottom/17px 2px,linear-gradient(#6bffe1,#6bffe1) left bottom/2px 17px,linear-gradient(#6bffe1,#6bffe1) right bottom/17px 2px,linear-gradient(#6bffe1,#6bffe1) right bottom/2px 17px;background-repeat:no-repeat}
+.scan-reticle canvas{width:85%;height:auto;display:block;filter:drop-shadow(0 0 9px #28f2b66e)}
+.home-note{margin:14px auto 0;color:#a5bec7;font-size:12px;line-height:1.55;word-break:keep-all}
+@media(max-height:500px){.home{padding-top:12px}.home-hero{padding-block:16px}.home-hero .display{font-size:clamp(30px,7vw,42px)}.hero-intro{margin:10px auto 13px}}
 </style>
