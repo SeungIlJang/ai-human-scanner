@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { measureFaceDetails } from '../src/services/faceMeasurements.js'
+import { measureFaceDetails, medianFaceMetrics } from '../src/services/faceMeasurements.js'
 
 const points = []
 for (const [index, x, y] of [
@@ -64,4 +64,12 @@ test('all nine areas have explanations when their landmark data is available', (
   complete[9] = { ...points[9], y: .46 }
   const differentForehead = measureFaceDetails(complete, 1, 90).find(group => group.title === '이마')
   assert.match(differentForehead.interpretation.impression, /가운데 구역보다 길어서/)
+})
+
+test('camera measurements use the central observation rather than a single outlier', () => {
+  assert.deepEqual(medianFaceMetrics([
+    { noseWidth: 29, eyeGap: 26.2 }, { noseWidth: 30, eyeGap: 26.4 },
+    { noseWidth: 55, eyeGap: 34 }, { noseWidth: 31, eyeGap: 26.1 },
+    { noseWidth: 30, eyeGap: 26.3 }
+  ]), { noseWidth: 30, eyeGap: 26.3 })
 })

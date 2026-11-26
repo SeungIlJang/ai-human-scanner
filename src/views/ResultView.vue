@@ -41,6 +41,7 @@ function restart() {
           <details class="shape-details">
             <summary>점수에 반영된 관상 기준</summary>
             <p>전통 관상 자료는 어떤 부위를 살펴볼지 정하는 데 쓰고, 점수와 유형은 앱의 규칙으로 생성합니다. 오관에서는 눈썹·눈·코·입의 사진 측정값을 사용합니다.</p>
+            <p v-if="session.captureMetrics">카메라 촬영 점수에는 여러 프레임의 중앙값을 사용했습니다. 상세설명은 아래에 표시된 촬영 사진을 기준으로 합니다.</p>
             <p>얼굴 측정값이 같으면 점수와 유형도 같아요.</p>
             <div class="measurement-grid">
               <section v-for="group in scores.basis" :key="group.key" class="measurement-group">

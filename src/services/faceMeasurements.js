@@ -2,6 +2,22 @@ const percent = (part, whole) => whole > 0 && Number.isFinite(part) ? Math.round
 const degrees = radians => Math.round(radians * 180 / Math.PI)
 const average = (a, b) => (a + b) / 2
 
+export function extractFaceMetrics(groups) {
+  if (!groups?.length) return null
+  const metrics = Object.assign({}, ...groups.map(group => group.metrics))
+  return Object.values(metrics).every(value => Number.isFinite(value) && value > 0) ? metrics : null
+}
+
+export function medianFaceMetrics(samples) {
+  if (!samples.length) return null
+  return Object.fromEntries(Object.keys(samples[0]).map(key => {
+    const values = samples.map(sample => sample[key]).sort((a, b) => a - b)
+    const mid = Math.floor(values.length / 2)
+    const median = values.length % 2 ? values[mid] : average(values[mid - 1], values[mid])
+    return [key, Math.round(median * 10) / 10]
+  }))
+}
+
 // Uses ratios in a single image. The eye axis compensates for in-plane tilt.
 export function measureFaceDetails(points, aspect, symmetry) {
   if (!Number.isFinite(aspect) || aspect <= 0) return null

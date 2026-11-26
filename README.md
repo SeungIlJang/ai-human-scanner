@@ -29,7 +29,7 @@ npm run preview
 - 인성 점수, 거짓말 횟수, 못된 점수, 잔머리 지수, 전생 직업, 동물 유형을 얼굴 스캔 아래 표시하고 못된 짓 횟수 등은 하단의 다른 점수에서 펼쳐 보기
 - Hash Router, GitHub Pages 자동 배포, 요청 시 로컬 모델/WASM 캐시
 
-점수 범위는 `src/data/score-config.json`에서 관리합니다. `src/services/physiognomyScore.js`는 `src/data/physiognomy-sources.json`에 기록한 전통 관상 분류의 적용 대상과 사진의 측정값을 결합해 재미용 점수를 생성합니다. 전통 분류는 부위 선택에 쓰이며 점수 생성 규칙은 앱에서 정합니다.
+점수 범위는 `src/data/score-config.json`에서 관리합니다. `src/services/physiognomyScore.js`는 전통 관상 분류의 적용 대상과 얼굴 측정값을 결합해 재미용 점수를 생성합니다. 점수는 비율에 따라 점진적으로 변합니다. 카메라는 가이드 안에서 정면·표정·조명·선명도를 확인하고, 안정된 여러 프레임의 중앙값을 점수에 사용합니다.
 
 ## 경량화와 오프라인 사용
 

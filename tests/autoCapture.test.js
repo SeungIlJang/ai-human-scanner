@@ -52,3 +52,25 @@ test('an interrupted stream cannot satisfy the hold using stale samples', () => 
   const face = faceFraming(centered, 400, 500, 400, 500)
   for (const time of [100, 220, 350, 1000]) assert.equal(gate.update(face, time), false)
 })
+
+test('manual capture needs fresh measurements and loses them when framing breaks', () => {
+  const gate = createAutoCaptureGate()
+  const face = faceFraming(centered, 400, 500, 400, 500)
+  for (const [index, time] of [100, 180, 260, 340].entries()) gate.update(face, time, { index })
+  assert.equal(gate.recentMeasurements(345), null)
+  gate.update(face, 420, { index: 4 })
+  assert.equal(gate.recentMeasurements(430)?.length, 5)
+  assert.equal(gate.recentMeasurements(671), null)
+  gate.update({ ready: false }, 440)
+  assert.equal(gate.recentMeasurements(450), null)
+})
+
+test('a steady smile is allowed but a strong expression change restarts sampling', () => {
+  const gate = createAutoCaptureGate(700, 4)
+  const face = { ...faceFraming(centered, 400, 500, 400, 500), expression: { smile: .9, mouthOpen: .1 } }
+  for (const time of [100, 300, 500]) gate.update(face, time, { noseWidth: 30 })
+  assert.equal(gate.update(face, 800, { noseWidth: 30 }), true)
+  const neutral = { ...face, expression: { smile: .1, mouthOpen: .1 } }
+  assert.equal(gate.update(neutral, 850, { noseWidth: 30 }), false)
+  assert.equal(gate.recentMeasurements(850), null)
+})

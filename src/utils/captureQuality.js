@@ -1,5 +1,5 @@
 const SAMPLE_SIZE = 96
-const MIN_FRONT_ALIGNMENT = Math.cos(25 * Math.PI / 180)
+const MIN_FRONT_ALIGNMENT = Math.cos(15 * Math.PI / 180)
 
 export function isFacingCamera(matrix) {
   const data = matrix?.data
@@ -36,7 +36,7 @@ export function checkFacePixels(pixels, width, height) {
   return ''
 }
 
-export function checkCapturedFace(canvas, points) {
+export function checkCapturedFace(canvas, points, sample = document.createElement('canvas')) {
   // Measure the inner face so that sharp edges in the background cannot pass the check.
   const left = Math.max(0, Math.min(...points.map(point => point.x)))
   const right = Math.min(1, Math.max(...points.map(point => point.x)))
@@ -46,8 +46,8 @@ export function checkCapturedFace(canvas, points) {
   const height = (bottom - top) * canvas.height
   if (width <= 0 || height <= 0) return '얼굴을 화면 중앙에 맞춰 주세요'
 
-  const sample = document.createElement('canvas')
-  sample.width = sample.height = SAMPLE_SIZE
+  if (sample.width !== SAMPLE_SIZE) sample.width = SAMPLE_SIZE
+  if (sample.height !== SAMPLE_SIZE) sample.height = SAMPLE_SIZE
   const context = sample.getContext('2d', { willReadFrequently: true })
   context.drawImage(canvas, left * canvas.width + width * .15, top * canvas.height + height * .2,
     width * .7, height * .65, 0, 0, SAMPLE_SIZE, SAMPLE_SIZE)

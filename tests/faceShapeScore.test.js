@@ -67,3 +67,18 @@ test('scores are repeatable and change when either the face or the source-based 
   assert.ok(result.highlights.every(item => !additional.has(item.label)))
   assert.equal(createPhysiognomyScores(null), null)
 })
+
+test('a 0.1 percentage point change does not reshuffle scores or types', () => {
+  const metrics = {
+    browGap: 19, eyeGap: 25, noseWidth: 31, mouthWidth: 53,
+    upperFace: 20.1, midFace: 35.4, lowerFace: 44.5,
+    foreheadWidth: 73, cheekWidth: 77, jawWidth: 80, noseLength: 28
+  }
+  const baseline = createPhysiognomyScores([{ metrics }])
+  const changed = createPhysiognomyScores([{ metrics: { ...metrics, upperFace: 20.2, lowerFace: 44.4 } }])
+  for (const index of [0, 2, 3]) {
+    assert.ok(Math.abs(baseline.highlights[index].value - changed.highlights[index].value) <= 1)
+  }
+  assert.ok(Math.abs(baseline.highlights[1].value - changed.highlights[1].value) <= 2)
+  assert.deepEqual(baseline.highlights.slice(4), changed.highlights.slice(4))
+})
