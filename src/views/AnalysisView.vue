@@ -6,7 +6,7 @@ import { createScores, makeSeed } from '../services/scoreEngine.js'
 import ScanAnimation from '../components/ScanAnimation.vue'
 const router=useRouter(), progress=ref(0), timer=ref(null)
 let finishTimer
-const steps=['얼굴 감지 중...','얼굴 특징점 추출 중...','얼굴 형태 시각화 중...','재미용 캐릭터 데이터 생성 중...','가상 시뮬레이션 완료!']
+const steps=['얼굴 감지 중...','얼굴 특징점 추출 중...','얼굴 형태 시각화 중...','얼굴 비율을 캐릭터 능력치로 변환 중...','가상 시뮬레이션 완료!']
 const message=computed(()=>steps[Math.min(4,Math.floor(progress.value/23))])
 function completeTone(){try{const context=new (window.AudioContext||window.webkitAudioContext)();const oscillator=context.createOscillator(),gain=context.createGain();oscillator.frequency.setValueAtTime(660,context.currentTime);oscillator.frequency.exponentialRampToValueAtTime(990,context.currentTime+.2);gain.gain.setValueAtTime(.08,context.currentTime);gain.gain.exponentialRampToValueAtTime(.001,context.currentTime+.3);oscillator.connect(gain).connect(context.destination);oscillator.start();oscillator.stop(context.currentTime+.3);setTimeout(()=>context.close(),400)}catch{}}
 onMounted(()=>{const started=performance.now();const seed=makeSeed();session.seed=seed;timer.value=setInterval(()=>{progress.value=Math.min(100,Math.round((performance.now()-started)/40));if(progress.value>=100){clearInterval(timer.value);session.result=createScores(seed);completeTone();finishTimer=setTimeout(()=>router.push('/result'),450)}},40)})

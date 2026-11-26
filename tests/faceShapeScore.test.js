@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { measureFaceShape } from '../src/services/faceShapeScore.js'
+import { createFaceCharacter } from '../src/services/faceCharacter.js'
 
 const points = []
 for (const [index, x, y] of [
@@ -29,4 +30,19 @@ test('the same geometry scores the same after mirroring, zooming or translation'
 test('missing measurements do not produce an invented score', () => {
   assert.equal(measureFaceShape([], 1), null)
   assert.equal(measureFaceShape(points, 0), null)
+})
+
+test('the main character uses the measured face and is repeatable', () => {
+  const character = createFaceCharacter(measureFaceShape(points, 1.2))
+  assert.deepEqual(createFaceCharacter(measureFaceShape(points, 1.2)), character)
+  assert.deepEqual(character.stats.map(s => s.value), [85, 100, 79])
+  assert.equal(character.total, 88)
+  assert.equal(character.title, '달빛 수호자')
+
+  const modified = points.slice()
+  modified[263] = { x: .63, y: .4 }
+  const newCharacter = createFaceCharacter(measureFaceShape(modified, 1.2))
+  assert.deepEqual(newCharacter.stats.map(s => s.value), [55, 100, 79])
+  assert.equal(newCharacter.total, 78)
+  assert.equal(createFaceCharacter(null), null)
 })

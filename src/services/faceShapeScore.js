@@ -27,14 +27,15 @@ export function measureFaceShape(points, imageAspect) {
 
   const similarity = (a, b) => Math.round(100 * Math.min(a, b) / Math.max(a, b))
   const scores = [
-    { label: '눈 너비 균형', value: similarity(leftEye, rightEye) },
-    { label: '볼 간격 균형', value: similarity(leftCheek, rightCheek) },
-    { label: '입꼬리 간격 균형', value: similarity(leftMouth, rightMouth) }
+    { key: 'eyes', label: '눈 너비 균형', value: similarity(leftEye, rightEye) },
+    { key: 'cheeks', label: '볼 간격 균형', value: similarity(leftCheek, rightCheek) },
+    { key: 'mouth', label: '입꼬리 간격 균형', value: similarity(leftMouth, rightMouth) }
   ]
   return {
     total: Math.round(scores.reduce((sum, score) => sum + score.value, 0) / scores.length),
     scores,
     widthToHeight: Math.round(100 * faceWidth / faceHeight),
-    eyeGapToWidth: Math.round(100 * distance('leftInnerEye', 'rightInnerEye') / faceWidth)
+    eyeGapToWidth: Math.round(100 * distance('leftInnerEye', 'rightInnerEye') / faceWidth),
+    mouthToWidth: Math.round(100 * distance('leftMouth', 'rightMouth') / faceWidth)
   }
 }

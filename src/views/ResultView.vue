@@ -5,6 +5,7 @@ import { session, resetSession } from '../stores/session.js'
 import { config } from '../services/scoreEngine.js'
 import { summary, describe } from '../services/descriptionEngine.js'
 import { measureFaceShape } from '../services/faceShapeScore.js'
+import { createFaceCharacter } from '../services/faceCharacter.js'
 import { measureFaceDetails } from '../services/faceMeasurements.js'
 import traditions from '../data/physiognomy-sources.json'
 import { makeShareImage, downloadBlob, DISCLAIMER } from '../services/shareService.js'
@@ -12,27 +13,19 @@ import FaceMesh from '../components/FaceMesh.vue'
 import ScoreBar from '../components/ScoreBar.vue'
 
 const router = useRouter()
-const preview = ref(''), blob = ref(null), error = ref(''), busy = ref(false), animated = ref(0)
+const preview = ref(''), blob = ref(null), error = ref(''), busy = ref(false)
 const result = computed(() => session.result)
 const faceShape = computed(() => measureFaceShape(session.landmarks?.[0], session.imageAspect))
+const character = computed(() => createFaceCharacter(faceShape.value))
 const measurements = computed(() => measureFaceDetails(session.landmarks?.[0], session.imageAspect, faceShape.value?.total))
-const featured = config.scores.slice(0, 5).map((item, index) => ({ ...item, color: ['#21d9a4', '#ff6675', '#e6bc4d', '#ad83e9', '#59a8fb'][index] }))
-const secondary = config.scores.slice(5)
 const top = computed(() => config.scores.map(item => ({ ...item, value: result.value.scores[item.key] })).sort((a, b) => b.value - a.value).slice(0, 3))
 const copy = computed(() => summary(result.value))
-const started = performance.now()
-let frame
-function animate() {
-  animated.value = Math.round(result.value.total * Math.min(1, (performance.now() - started) / 1200))
-  if (animated.value < result.value.total) frame = requestAnimationFrame(animate)
-}
-frame = requestAnimationFrame(animate)
-onBeforeUnmount(() => { cancelAnimationFrame(frame); closePreview() })
+onBeforeUnmount(closePreview)
 
 async function prepare() {
   busy.value = true; error.value = ''
   try {
-    blob.value = await makeShareImage(session.image, result.value, top.value, faceShape.value)
+    blob.value = await makeShareImage(session.image, character.value)
     closePreview()
     preview.value = URL.createObjectURL(blob.value)
   } catch { error.value = '공유 이미지를 생성하지 못했습니다.' }
@@ -57,13 +50,31 @@ function closePreview() { if (preview.value) URL.revokeObjectURL(preview.value);
   <section class="result-page">
     <div class="scanner-card">
       <h1 class="scanner-title">AI HUMAN SCANNER</h1>
-      <p class="result-notice">{{ DISCLAIMER }}</p>
+      <div v-if="character" class="character-head">
+        <p>관상 기반 캐릭터 점수</p>
+        <h2>{{ character.title }}</h2>
+        <strong>{{ character.total }}<small> / 100점</small></strong>
+      </div>
       <div class="scan-visual">
         <FaceMesh :landmarks="session.landmarks" :photo="session.image" bright />
         <span class="visual-label">FACE SCAN / COMPLETE</span>
         <span class="scan-beam"></span>
         <span class="visual-complete">SIMULATION COMPLETE</span>
       </div>
+      <section v-if="character" class="shape-score" aria-labelledby="ability-title">
+        <h2 id="ability-title">캐릭터 능력치</h2>
+        <p>사진에서 측정한 좌우 균형 60%와 앱의 얼굴 비율 환산 점수 40%를 합산합니다. 종합 점수는 세 능력치의 평균입니다.</p>
+        <div class="featured-scores">
+          <div v-for="stat in character.stats" :key="stat.label">
+            <ScoreBar :label="stat.label" :value="stat.value" />
+            <p>{{ stat.balance }} {{ stat.measuredBalance }}점 · {{ stat.ratioLabel }} {{ stat.measuredRatio }}% → {{ stat.ratioPoints }}점 ({{ stat.min }}~{{ stat.max }}% 기준)</p>
+          </div>
+        </div>
+        <p>얼굴 특징을 게임 규칙으로 해석한 오락용 능력치입니다.</p>
+        <button class="btn neon-btn" :disabled="busy" @click="prepare">캐릭터 카드 공유</button>
+        <p v-if="error" class="error" role="alert">{{ error }}</p>
+      </section>
+      <p v-else class="result-notice">이 사진에서는 캐릭터 점수를 계산할 얼굴 특징점이 부족합니다. 얼굴 전체가 보이는 사진으로 다시 시도해 주세요.</p>
       <section class="shape-score" aria-labelledby="shape-title">
         <div class="shape-heading">
           <h2 id="shape-title">관상 스캔 점수</h2>
@@ -93,7 +104,7 @@ function closePreview() { if (preview.value) URL.revokeObjectURL(preview.value);
         </details>
         <details class="shape-details">
           <summary>전통 관상 용어와 출처</summary>
-          <p>오관, 삼정, 오악은 전통 관상에서 쓰인 분류입니다. 앱의 점수는 사진에서 측정한 좌우 균형으로 계산합니다.</p>
+          <p>오관, 삼정, 오악은 전통 관상에서 쓰인 분류입니다. 캐릭터 능력치는 앱의 게임 규칙으로 계산합니다.</p>
           <ul class="tradition-list">
             <li v-for="concept in traditions.concepts" :key="concept.title">
               <strong>{{ concept.title }}</strong> {{ concept.summary }}
@@ -107,39 +118,37 @@ function closePreview() { if (preview.value) URL.revokeObjectURL(preview.value);
           </ul>
         </details>
       </section>
-      <p class="section-caption">무작위로 생성한 오락용 캐릭터 점수</p>
-      <div class="featured-scores">
-        <ScoreBar v-for="item in featured" :key="item.key" :label="item.label" :value="result.scores[item.key]" :color="item.color" />
-      </div>
-      <div class="lie-feature">
-        <span>가상의 누적 거짓말 횟수</span>
-        <b>{{ result.lieCount.toLocaleString() }}회</b>
-      </div>
       <button class="restart-button" @click="restart">◌ &nbsp; 다시 분석하기</button>
-      <p class="card-footnote">실제 인성 분석이 아닌 가상 결과입니다.</p>
     </div>
 
-    <div class="detail-panel panel">
+    <details class="detail-panel panel">
+      <summary>무작위 보너스 결과 보기</summary>
+      <p class="muted">{{ DISCLAIMER }}</p>
       <div class="detail-intro">
         <img :src="session.image" alt="선택한 사진" class="detail-photo" />
-        <div><span class="eyebrow">CHARACTER PROFILE</span><h2>{{ result.title }} <strong>{{ result.grade }}</strong></h2><p>종합 캐릭터 점수 <b>{{ animated }}점</b></p><p>전생 직업 · {{ result.job }}</p><p>전생 재산 · {{ (result.seed % 990 + 10).toLocaleString() }}만 별코인</p></div>
+        <div><h2>{{ result.title }} <strong>{{ result.grade }}</strong></h2><p>전생 직업 · {{ result.job }}</p><p>전생 재산 · {{ (result.seed % 990 + 10).toLocaleString() }}만 별코인</p><p>가상 누적 거짓말 · {{ result.lieCount.toLocaleString() }}회</p></div>
       </div>
-      <h3>나머지 가상 능력치</h3>
-      <div class="score-grid"><ScoreBar v-for="item in secondary" :key="item.key" :label="item.label" :value="result.scores[item.key]" /></div>
+      <h3>가상 능력치</h3>
+      <div class="score-grid"><ScoreBar v-for="item in config.scores" :key="item.key" :label="item.label" :value="result.scores[item.key]" /></div>
       <h3>캐릭터 해설</h3><p class="story">{{ copy }}</p>
       <h3>가장 높은 능력치 TOP 3</h3>
       <div v-for="(item, index) in top" :key="item.key" class="top-row"><span>0{{ index + 1 }} &nbsp; {{ item.label }}</span><b>{{ item.value }}점</b><p>{{ describe(result, item.key) }}</p></div>
-      <div class="detail-actions"><button class="btn neon-btn" :disabled="busy" @click="prepare">공유 이미지 미리보기</button><button class="btn outline-btn" @click="restart">다시 분석하기</button></div>
-      <p v-if="error" class="error" role="alert">{{ error }}</p>
-    </div>
+    </details>
 
     <div v-if="preview" class="modal-backdrop" @click.self="closePreview"><div class="preview-card panel" role="dialog" aria-modal="true" aria-label="공유 이미지 미리보기"><h2>공유 이미지 미리보기</h2><img :src="preview" alt="공유할 결과 이미지 미리보기" style="width:100%;border-radius:8px" /><p class="small muted">{{ DISCLAIMER }}</p><div class="modal-actions"><button class="btn outline-btn" @click="downloadBlob(blob)">PNG 저장</button><button class="btn neon-btn" @click="share">공유하기</button><button class="btn text-btn" @click="closePreview">닫기</button></div></div></div>
   </section>
 </template>
 
 <style scoped>
-.result-page{padding:24px 0 52px;max-width:700px;margin:auto}.scanner-card{background:#202020;border:1px solid #444;border-radius:13px;padding:14px 13px 16px;color:#f5f5f5}.scanner-title{text-align:center;font-size:17px;line-height:1.4;margin:0 0 5px;font-weight:800}.result-notice{text-align:center;color:#bcc9c6;font-size:12px;line-height:1.5;margin:0 0 12px}.scan-visual{height:clamp(300px,55vw,410px);position:relative;overflow:hidden;border-radius:9px;background-color:#071019;background-image:linear-gradient(#00c99b15 1px,transparent 1px),linear-gradient(90deg,#00c99b15 1px,transparent 1px);background-size:34px 34px}.scan-visual canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1}.visual-label,.visual-complete{position:absolute;z-index:3;color:#17e5b5;font-size:15px}.visual-label{left:25px;top:20px}.visual-complete{bottom:17px;left:0;right:0;text-align:center;font-size:17px}.scan-beam{position:absolute;z-index:2;top:49%;left:25%;right:25%;height:3px;background:#18e7b6;box-shadow:0 0 10px 3px #14dba877;animation:pulse 2s ease-in-out infinite alternate}@keyframes pulse{to{opacity:.35}}.section-caption{text-align:center;font-size:12px;margin:9px 0 13px;color:#d0d0d0}.featured-scores{display:grid;gap:12px}.featured-scores :deep(.score-item){padding:0;background:transparent;border-radius:0}.featured-scores :deep(.score-item-head){font-size:13px;margin-bottom:6px}.featured-scores :deep(.score-item-head b){color:#eee}.featured-scores :deep(.score-track){background:#414149;height:6px}.lie-feature{border-top:1px solid #424242;margin-top:17px;padding-top:14px;display:flex;flex-direction:column;gap:7px;font-size:12px}.lie-feature b{align-self:center;font-size:21px;color:#ff555b}.restart-button{width:100%;border:0;background:#f2f2f2;color:#222;border-radius:22px;min-height:31px;font-size:13px;cursor:pointer}.restart-button:hover{background:#fff}.card-footnote{text-align:center;color:#b7b7b7;font-size:11px;margin:7px 0 0}.detail-panel{margin-top:20px;padding:22px}.detail-intro{display:flex;gap:20px;align-items:start}.detail-photo{width:130px;height:130px;object-fit:cover;border-radius:10px}.detail-intro h2{margin:8px 0;font-size:22px}.detail-intro h2 strong{color:#ffd700}.detail-intro p{font-size:13px;margin:7px 0;color:#a9c2cb}.detail-intro b{color:#00ffaa}.detail-panel h3{font-size:17px;margin:24px 0 12px}.story{font-size:14px;line-height:1.8;color:#d1e5eb}.top-row{border-top:1px solid #2a3948;padding:12px 0}.top-row span{color:#d8edf0}.top-row b{float:right;color:#00ffaa}.top-row p{font-size:13px;color:#8eabb5;margin:8px 0 0}.detail-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}@media(max-width:600px){.result-page{padding:14px 0 30px}.scan-visual{height:clamp(280px,70vw,390px)}.detail-intro{gap:13px}.detail-photo{width:95px;height:95px}.detail-intro h2{font-size:18px}.detail-panel{padding:16px}.detail-actions .btn{flex:1}}
+.result-page{padding:24px 0 52px;max-width:700px;margin:auto}.scanner-card{background:#202020;border:1px solid #444;border-radius:13px;padding:14px 13px 16px;color:#f5f5f5}.scanner-title{text-align:center;font-size:17px;line-height:1.4;margin:0 0 5px;font-weight:800}.result-notice{text-align:center;color:#bcc9c6;font-size:12px;line-height:1.5;margin:0 0 12px}.scan-visual{height:clamp(300px,55vw,410px);position:relative;overflow:hidden;border-radius:9px;background-color:#071019;background-image:linear-gradient(#00c99b15 1px,transparent 1px),linear-gradient(90deg,#00c99b15 1px,transparent 1px);background-size:34px 34px}.scan-visual canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1}.visual-label,.visual-complete{position:absolute;z-index:3;color:#17e5b5;font-size:15px}.visual-label{left:25px;top:20px}.visual-complete{bottom:17px;left:0;right:0;text-align:center;font-size:17px}.scan-beam{position:absolute;z-index:2;top:49%;left:25%;right:25%;height:3px;background:#18e7b6;box-shadow:0 0 10px 3px #14dba877;animation:pulse 2s ease-in-out infinite alternate}@keyframes pulse{to{opacity:.35}}.featured-scores{display:grid;gap:12px}.featured-scores :deep(.score-item){padding:0;background:transparent;border-radius:0}.featured-scores :deep(.score-item-head){font-size:13px;margin-bottom:6px}.featured-scores :deep(.score-item-head b){color:#eee}.featured-scores :deep(.score-track){background:#414149;height:6px}.restart-button{width:100%;border:0;background:#f2f2f2;color:#222;border-radius:22px;min-height:31px;font-size:13px;cursor:pointer}.restart-button:hover{background:#fff}.detail-panel{margin-top:20px;padding:22px}.detail-intro{display:flex;gap:20px;align-items:start}.detail-photo{width:130px;height:130px;object-fit:cover;border-radius:10px}.detail-intro h2{margin:8px 0;font-size:22px}.detail-intro h2 strong{color:#ffd700}.detail-intro p{font-size:13px;margin:7px 0;color:#a9c2cb}.detail-intro b{color:#00ffaa}.detail-panel h3{font-size:17px;margin:24px 0 12px}.story{font-size:14px;line-height:1.8;color:#d1e5eb}.top-row{border-top:1px solid #2a3948;padding:12px 0}.top-row span{color:#d8edf0}.top-row b{float:right;color:#00ffaa}.top-row p{font-size:13px;color:#8eabb5;margin:8px 0 0}@media(max-width:600px){.result-page{padding:14px 0 30px}.scan-visual{height:clamp(280px,70vw,390px)}.detail-intro{gap:13px}.detail-photo{width:95px;height:95px}.detail-intro h2{font-size:18px}.detail-panel{padding:16px}}
 .shape-score{margin:14px 0;padding:14px;border:1px solid #367565;border-radius:10px;background:#142722}
+.shape-score h2{margin:0;font-size:17px}
+.character-head{text-align:center;padding:8px 0 16px}
+.character-head p{margin:0;color:#b8d9d1;font-size:14px}
+.character-head h2{margin:6px 0;color:#f4fffa;font-size:25px}
+.character-head strong{font-size:32px;color:#21d9a4}
+.character-head small{font-size:14px;color:#c8dbd4}
+.detail-panel summary{cursor:pointer;font-weight:700}
 .shape-heading{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px}
 .shape-heading h2{margin:0;font-size:17px}
 .shape-heading strong{color:#21d9a4;font-size:23px}
