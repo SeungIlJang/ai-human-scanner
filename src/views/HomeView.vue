@@ -59,8 +59,8 @@ async function selectPhoto(event) {
 <template>
   <div class="home">
     <section class="home-hero" aria-labelledby="home-title">
-      <h1 id="home-title" class="display">당신의 얼굴,<br><span class="gradient">캐릭터가 되다.</span></h1>
-      <p class="hero-intro">얼굴을 스캔하고 나만의 캐릭터 카드를 만들어 보세요.</p>
+      <h1 id="home-title" class="display">얼굴 스캔으로<br><span class="gradient">관상 점수 확인</span></h1>
+      <p class="hero-intro">얼굴의 비율과 좌우 균형을 측정하고 재미용 관상 점수를 확인해 보세요.</p>
       <div class="home-actions">
         <router-link class="btn btn-large neon-btn" to="/camera">카메라로 시작</router-link>
         <button class="btn btn-large outline-btn" :disabled="busy" @click="file.click()">

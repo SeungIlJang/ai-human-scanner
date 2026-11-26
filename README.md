@@ -1,6 +1,6 @@
 # AI HUMAN SCANNER · AI 인간 분석기
 
-얼굴 특징점을 기기 안에서 시각화하고, 얼굴 비율로 오락용 가상 캐릭터 카드를 만드는 Vue 3 모바일 웹앱입니다. 실제 인성, 성격, 거짓말 횟수는 측정하지 않습니다.
+얼굴 특징점을 기기 안에서 시각화하고, 얼굴 비율과 좌우 균형을 측정해 재미용 관상 점수를 보여주는 Vue 3 모바일 웹앱입니다. 실제 인성, 성격, 거짓말 횟수는 측정하지 않습니다.
 
 ## 실행
 
@@ -25,13 +25,11 @@ npm run preview
 - 카메라에서는 1명 추적 모드의 MediaPipe 시간축 보정을 사용하고, 촬영 사진은 정지 이미지 모드에서 다시 분석해 여러 얼굴을 확인
 - MediaPipe Face Landmarker 특징점 478개와 연결선 HUD
 - 사진 속 눈 너비, 볼 간격, 입꼬리 간격의 좌우 균형을 평균한 관상 스캔 점수와 얼굴 비율 표시
-- 관상 기반 캐릭터 카드: 눈, 볼, 입의 균형과 비율을 게임 규칙으로 환산한 정밀·방어·마력 점수
 - 4초 스캔, 단계 메시지, 완료음, 점수 카운트 애니메이션
-- 인성 점수, 거짓말 횟수, 못된 짓 횟수, 바람둥이 지수를 가상 캐릭터 결과의 상단에 표시
-- PNG 미리보기·저장 및 Web Share API 이미지 공유 (미지원 브라우저는 다운로드)
+- 인성 점수, 거짓말 횟수, 못된 짓 횟수, 바람둥이 지수를 얼굴 스캔 아래 관상 결과에 표시
 - Hash Router, GitHub Pages 자동 배포, 요청 시 로컬 모델/WASM 캐시
 
-점수 항목·범위·가중치는 `src/data/score-config.json`, 해설은 `src/data/descriptions.json`, 직업과 캐릭터 이름은 `src/data/character-types.json`에서 수정합니다. `src/services/faceCharacter.js`는 사진 속 비율과 균형을 재현 가능한 게임 시드로 변환하고, `src/services/scoreEngine.js`는 시드로 가상 결과를 생성합니다.
+점수 범위는 `src/data/score-config.json`에서 관리합니다. `src/services/physiognomyScore.js`는 사진 속 비율과 균형을 재현 가능한 시드로 변환해 재미용 관상 결과를 생성합니다.
 
 ## 경량화와 오프라인 사용
 
@@ -49,7 +47,7 @@ Vite `base`는 Actions의 `GITHUB_REPOSITORY`에서 저장소 이름을 읽어 `
 
 ## 개인정보
 
-사진과 얼굴 특징점은 앱의 메모리에서만 처리합니다. LocalStorage와 백엔드를 사용하지 않습니다. 사용자가 PNG 저장 또는 공유를 누를 때만 결과 이미지를 만들고 전달합니다. 홈으로 돌아가거나 다시 분석하면 세션 데이터를 초기화합니다. 촬영 대상자의 동의를 받고 사용하세요.
+사진과 얼굴 특징점은 앱의 메모리에서만 처리합니다. LocalStorage와 백엔드를 사용하지 않습니다. 홈으로 돌아가거나 다시 분석하면 세션 데이터를 초기화합니다. 촬영 대상자의 동의를 받고 사용하세요.
 
 MediaPipe는 입력 이미지가 기기에서 처리되고 Google로 보내지지 않는다고 설명하지만, **SDK 사용량·성능 지표 전송 가능성**을 별도 [개인정보 안내](https://github.com/google-ai-edge/mediapipe/blob/master/mediapipe/tasks/web/vision/README.md#privacy-notice)에 명시합니다. 배포 전 해당 안내에 맞는 고지·동의 절차를 검토하세요.
 
@@ -62,4 +60,4 @@ MediaPipe는 입력 이미지가 기기에서 처리되고 Google로 보내지�
 
 ## 확인한 내용과 한계
 
-`npm test`에서 500개 시드의 재현성·점수 범위·등급·해설 수량을 확인하고 `npm run build`로 PWA 파일을 생성했습니다. Android Chrome, iPhone Safari, 실제 전·후면 카메라, 권한 거부, SNS 앱 공유, 배포된 GitHub Pages는 이 개발 환경에서 실기기 검증이 필요합니다.
+`npm test`에서 500개 시드의 재현성·점수 범위·등급·해설 수량을 확인하고 `npm run build`로 PWA 파일을 생성했습니다. Android Chrome, iPhone Safari, 실제 전·후면 카메라, 권한 거부, 배포된 GitHub Pages는 이 개발 환경에서 실기기 검증이 필요합니다.

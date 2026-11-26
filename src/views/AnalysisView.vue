@@ -3,11 +3,11 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { session, resetSession } from '../stores/session.js'
 import { measureFaceShape } from '../services/faceShapeScore.js'
-import { createFaceCharacter } from '../services/faceCharacter.js'
+import { createPhysiognomyScores } from '../services/physiognomyScore.js'
 import ScanAnimation from '../components/ScanAnimation.vue'
 const router=useRouter(), progress=ref(0), timer=ref(null)
 let finishTimer
-const steps=['얼굴 감지 중...','얼굴 특징점 추출 중...','얼굴 형태 시각화 중...','얼굴 비율을 캐릭터 능력치로 변환 중...','가상 시뮬레이션 완료!']
+const steps=['얼굴 감지 중...','얼굴 특징점 추출 중...','얼굴 비율 측정 중...','관상 점수 계산 중...','관상 스캔 완료!']
 const message=computed(()=>steps[Math.min(4,Math.floor(progress.value/23))])
 function completeTone(){try{const context=new (window.AudioContext||window.webkitAudioContext)();const oscillator=context.createOscillator(),gain=context.createGain();oscillator.frequency.setValueAtTime(660,context.currentTime);oscillator.frequency.exponentialRampToValueAtTime(990,context.currentTime+.2);gain.gain.setValueAtTime(.08,context.currentTime);gain.gain.exponentialRampToValueAtTime(.001,context.currentTime+.3);oscillator.connect(gain).connect(context.destination);oscillator.start();oscillator.stop(context.currentTime+.3);setTimeout(()=>context.close(),400)}catch{}}
 onMounted(() => {
@@ -17,7 +17,7 @@ onMounted(() => {
     if (progress.value < 100) return
     clearInterval(timer.value)
     const faceShape = measureFaceShape(session.landmarks?.[0], session.imageAspect)
-    session.result = { faceShape, character: createFaceCharacter(faceShape) }
+    session.result = { faceShape, scores: createPhysiognomyScores(faceShape) }
     completeTone()
     finishTimer = setTimeout(() => router.push('/result'), 450)
   }, 40)
@@ -30,7 +30,7 @@ function cancel(){resetSession();router.push('/')}
   <section class="analysis-layout">
     <ScanAnimation :image="session.image" :landmarks="session.landmarks" :progress="progress" />
     <div class="panel progress-panel">
-      <h1>캐릭터 데이터 생성 중</h1>
+      <h1>관상 분석 중</h1>
       <div class="score-track" role="progressbar" aria-label="스캔 진행률" :aria-valuenow="progress"><span :style="{ width: progress + '%' }"></span></div>
       <p class="scan-message">{{ message }}</p>
       <p class="muted">얼굴 특징점으로 사진 속 얼굴 형태를 측정합니다.</p>

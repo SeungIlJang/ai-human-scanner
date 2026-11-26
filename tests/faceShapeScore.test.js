@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { measureFaceShape } from '../src/services/faceShapeScore.js'
-import { createFaceCharacter } from '../src/services/faceCharacter.js'
+import { createPhysiognomyScores } from '../src/services/physiognomyScore.js'
 
 const points = []
 for (const [index, x, y] of [
@@ -32,23 +32,16 @@ test('missing measurements do not produce an invented score', () => {
   assert.equal(measureFaceShape(points, 0), null)
 })
 
-test('the main character uses the measured face and is repeatable', () => {
-  const character = createFaceCharacter(measureFaceShape(points, 1.2))
-  assert.deepEqual(createFaceCharacter(measureFaceShape(points, 1.2)), character)
-  assert.deepEqual(character.stats.map(s => s.value), [85, 100, 79])
-  assert.equal(character.total, 88)
-  assert.equal(character.title, '달빛 수호자')
-
+test('the four entertainment scores use the measured face and are repeatable', () => {
+  const result = createPhysiognomyScores(measureFaceShape(points, 1.2))
+  assert.deepEqual(createPhysiognomyScores(measureFaceShape(points, 1.2)), result)
   const modified = points.slice()
   modified[263] = { x: .63, y: .4 }
-  const newCharacter = createFaceCharacter(measureFaceShape(modified, 1.2))
-  assert.deepEqual(newCharacter.stats.map(s => s.value), [55, 100, 79])
-  assert.equal(newCharacter.total, 78)
-  assert.notEqual(newCharacter.profile.seed, character.profile.seed)
-  assert.notDeepEqual(newCharacter.highlights, character.highlights)
-  assert.deepEqual(character.highlights.map(item => [item.label, item.unit]), [
+  const different = createPhysiognomyScores(measureFaceShape(modified, 1.2))
+  assert.notDeepEqual(different, result)
+  assert.deepEqual(result.map(item => [item.label, item.unit]), [
     ['인성 점수', '점'], ['거짓말 횟수', '회'], ['못된 짓 횟수', '회'], ['바람둥이 지수', '점']
   ])
-  assert.ok(character.highlights[2].value >= 0 && character.highlights[2].value <= 300)
-  assert.equal(createFaceCharacter(null), null)
+  assert.ok(result[2].value >= 0 && result[2].value <= 300)
+  assert.equal(createPhysiognomyScores(null), null)
 })
