@@ -31,3 +31,17 @@ test('tilting or mirroring the photo preserves the same measurements', () => {
   assert.deepEqual(measureFaceDetails(tilted, 1, 90), measureFaceDetails(points, 1, 90))
   assert.equal(measureFaceDetails([], 1), null)
 })
+
+test('the nose explanation changes when its width changes relative to the eye gap', () => {
+  const nose = landmarks => measureFaceDetails(landmarks, 1, 90).find(group => group.title === '코').interpretation
+  assert.match(nose(points).measurement, /23%.*27%/)
+  assert.match(nose(points).impression, /좁아서/)
+
+  const wider = points.slice()
+  wider[98] = { ...points[98], x: .39 }
+  wider[327] = { ...points[327], x: .61 }
+  assert.match(nose(wider).impression, /넓어서/)
+  assert.equal(nose(wider).source, 'aksFace')
+  delete wider[98]
+  assert.equal(nose(wider), null)
+})

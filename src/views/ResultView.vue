@@ -11,6 +11,7 @@ const router = useRouter()
 const faceShape = computed(() => session.result?.faceShape)
 const scores = computed(() => session.result?.scores)
 const measurements = computed(() => measureFaceDetails(session.landmarks?.[0], session.imageAspect, faceShape.value?.total))
+const interpretations = computed(() => measurements.value?.filter(group => group.interpretation) ?? [])
 
 function restart() {
   resetSession()
@@ -39,6 +40,21 @@ function restart() {
           <p>실제 인성이나 행동을 평가하는 수치가 아닙니다.</p>
         </template>
         <p v-else>점수를 계산할 얼굴 특징점이 부족합니다. 얼굴 전체가 보이는 사진으로 다시 시도해 주세요.</p>
+        <details v-if="interpretations.length" class="shape-details">
+          <summary>관상 상세설명 · 코, 눈, 입</summary>
+          <p>아래 문장은 이 사진의 이목구비에서 보이는 인상을 풀어 쓴 재미용 해석입니다.</p>
+          <div class="interpretations">
+            <section v-for="group in interpretations" :key="group.title" class="interpretation">
+              <h3>{{ group.title }}</h3>
+              <p class="interpretation-measurement">{{ group.interpretation.measurement }}</p>
+              <p>{{ group.interpretation.impression }}</p>
+              <p v-if="group.interpretation.source">
+                {{ group.interpretation.tradition }}
+                <a :href="traditions.sources[group.interpretation.source].url" target="_blank" rel="noopener">출처</a>
+              </p>
+            </section>
+          </div>
+        </details>
       </section>
       <section class="shape-score" aria-labelledby="shape-title">
         <div class="shape-heading">
@@ -106,6 +122,12 @@ function restart() {
 .shape-score p:last-child{margin-bottom:0}
 .shape-details{margin-top:12px;padding-top:10px;border-top:1px solid #367565}
 .shape-details summary{cursor:pointer;color:#f5f5f5;font-size:14px;font-weight:700;padding:6px 0}
+.interpretations{display:grid;gap:8px}
+.interpretation{padding:11px;border-radius:8px;background:#1b342d}
+.interpretation h3{margin:0;font-size:15px}
+.interpretation p{margin:5px 0 0;font-size:13px}
+.interpretation .interpretation-measurement{color:#81f5d1}
+.interpretation a{color:#81f5d1;text-decoration:underline}
 .measurement-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .measurement-group{padding:10px;border-radius:8px;background:#1b342d}
 .measurement-group h3{margin:0 0 8px;font-size:14px}

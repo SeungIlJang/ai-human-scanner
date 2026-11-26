@@ -30,8 +30,10 @@ export function measureFaceDetails(points, aspect, symmetry) {
 
   const forehead = w(103, 332), jaw = w(172, 397)
   const eyeWidth = average(w(33, 133), w(263, 362))
+  const eyeGapRatio = percent(w(133, 362), width)
   const browWidth = average(w(70, 107), w(300, 336))
   const noseWidth = w(98, 327)
+  const noseWidthRatio = percent(noseWidth, width)
   const mouthWidth = w(61, 291)
   const upper = v(9) - v(10), middle = v(2) - v(9), lower = v(152) - v(2)
   const thirds = [upper, middle, lower].every(n => n > 0) ? [
@@ -62,10 +64,14 @@ export function measureFaceDetails(points, aspect, symmetry) {
       row('얼굴 높이 대비 이마 높이', percent(upper > 0 ? upper : NaN, height)),
       row('얼굴 너비 대비 이마 너비', percent(forehead, width))
     ] },
-    { title: '눈', rows: [
+    { title: '눈', interpretation: cornerImpression('눈꼬리', eyeCornerAngle, [
+      '눈매 끝이 살짝 내려가 있어 사진에서 부드럽고 편안한 인상으로 보일 수 있어요.',
+      '눈매가 수평에 가까워 사진에서 차분해 보일 수 있어요.',
+      '눈매 끝이 살짝 올라가 있어 사진에서 또렷한 인상으로 보일 수 있어요.'
+    ]), rows: [
       row('평균 눈 길이 / 얼굴 너비', percent(eyeWidth, width)),
       row('평균 눈 뜬 높이 / 눈 길이', percent(average(h(159, 145), h(386, 374)), eyeWidth)),
-      row('두 눈 사이 / 얼굴 너비', percent(w(133, 362), width)),
+      row('두 눈 사이 / 얼굴 너비', eyeGapRatio),
       row('눈꼬리 평균 기울기', eyeCornerAngle, '°')
     ] },
     { title: '눈썹', rows: [
@@ -74,12 +80,16 @@ export function measureFaceDetails(points, aspect, symmetry) {
       row('두 눈썹 사이 / 얼굴 너비', percent(w(107, 336), width)),
       row('눈썹 평균 기울기', browAngle, '°')
     ] },
-    { title: '코', rows: [
+    { title: '코', interpretation: noseImpression(noseWidthRatio, eyeGapRatio), rows: [
       row('코 길이 / 얼굴 높이', percent(h(168, 2), height)),
-      row('콧방울 너비 / 얼굴 너비', percent(noseWidth, width)),
+      row('콧방울 너비 / 얼굴 너비', noseWidthRatio),
       row('콧방울 너비 / 코 길이', percent(noseWidth, h(168, 2)))
     ] },
-    { title: '입', rows: [
+    { title: '입', interpretation: cornerImpression('입꼬리', mouthAngle, [
+      '입꼬리가 살짝 내려가 있어 이 사진에서는 진지한 표정처럼 보일 수 있어요.',
+      '입꼬리가 수평에 가까워 이 사진에서는 담담한 표정처럼 보일 수 있어요.',
+      '입꼬리가 살짝 올라가 있어 이 사진에서는 은은한 미소처럼 보일 수 있어요.'
+    ]), rows: [
       row('입 너비 / 얼굴 너비', percent(mouthWidth, width)),
       row('입술 두께 합 / 입 너비', percent(h(0, 13) + h(14, 17), mouthWidth)),
       row('입꼬리 평균 기울기', mouthAngle, '°')
@@ -98,6 +108,32 @@ export function measureFaceDetails(points, aspect, symmetry) {
       row('좌우 균형 점수', symmetry, '점')
     ] }
   ]
+}
+
+function noseImpression(noseWidth, eyeGap) {
+  if (noseWidth == null || eyeGap == null || noseWidth <= 0 || eyeGap <= 0) return null
+  const difference = noseWidth - eyeGap
+  const impression = difference < -2
+    ? '콧방울이 눈 사이 간격보다 좁아서 얼굴 한가운데 선이 섬세해 보일 수 있어요.'
+    : difference > 2
+      ? '콧방울이 눈 사이 간격보다 넓어서 얼굴 한가운데 윤곽이 또렷해 보일 수 있어요.'
+      : '콧방울 너비와 눈 사이 간격이 비슷해서 눈과 코의 폭이 균형 있게 보일 수 있어요.'
+  return {
+    measurement: `얼굴 너비를 기준으로 콧방울은 ${noseWidth}%, 눈 사이 간격은 ${eyeGap}%입니다.`,
+    impression,
+    tradition: '전통 관상의 오악에서는 코를 얼굴 가운데에 해당하는 중악으로 보았어요.',
+    source: 'aksFace'
+  }
+}
+
+function cornerImpression(feature, angle, impressions) {
+  if (!Number.isFinite(angle)) return null
+  const direction = angle < -3 ? 0 : angle > 3 ? 2 : 1
+  const readings = ['아래쪽', '수평에 가까운 방향', '위쪽']
+  return {
+    measurement: `${feature} 평균 각도가 ${angle}°로, ${readings[direction]}으로 측정됐어요.`,
+    impression: impressions[direction]
+  }
 }
 
 function classifyOutline(height, forehead, jaw) {
