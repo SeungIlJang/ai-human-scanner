@@ -9,6 +9,13 @@ import ScoreBar from '../components/ScoreBar.vue'
 const router = useRouter()
 const scores = computed(() => session.result?.scores)
 const measurements = computed(() => session.result?.measurements)
+// Lead with the features that differ most from the reference; a face near the reference still gets three.
+const featuredReadings = computed(() => {
+  const ranked = [...(scores.value?.readings ?? [])].sort((a, b) => b.strength - a.strength)
+  const notable = ranked.filter(item => item.band !== 'mid' && item.key !== 'symmetry')
+  return (notable.length >= 3 ? notable : ranked).slice(0, 5)
+})
+const otherReadings = computed(() => (scores.value?.readings ?? []).filter(item => !featuredReadings.value.includes(item)))
 const interpretations = computed(() => measurements.value?.filter(group => group.interpretation) ?? [])
 
 const shareStatus = ref('')
@@ -54,14 +61,12 @@ function restart() {
             </div>
           </dl>
           <p>점수와 유형은 재미용 결과입니다. 실제 인성이나 행동을 평가하는 수치가 아닙니다.</p>
-          <details class="shape-details" open>
-            <summary>관상 풀이 · {{ scores.readings.length }}개 부위</summary>
-            <p>풀이의 근거 구절은 옛 관상서 《신상전편》에서 가져왔습니다. 측정값이 표준에서 벗어난 정도를 점수로 바꾸는 방식과 전생 직업·동물 유형은 이 앱이 정한 놀이 규칙입니다.</p>
-            <p v-if="session.captureMetrics">카메라 촬영에서는 여러 프레임의 중앙값으로 측정했습니다.</p>
+          <div class="shape-details">
+            <h3 class="readings-title">관상 풀이 · 눈에 띄는 {{ featuredReadings.length }}곳</h3>
+            <p>측정한 {{ scores.readings.length }}개 부위 중 표준에서 가장 많이 벗어난 곳입니다. 근거 구절은 옛 관상서 《신상전편》에서 가져왔고, 점수 환산과 전생 직업·동물 유형은 이 앱이 정한 놀이 규칙입니다.</p>
             <div class="interpretations">
-              <section v-for="item in scores.readings" :key="item.key" class="interpretation">
+              <section v-for="item in featuredReadings" :key="item.key" class="interpretation">
                 <h3>{{ item.title }} <span class="reading-band" :class="'reading-' + item.band">{{ item.bandLabel }}</span></h3>
-                <p class="interpretation-measurement">{{ item.measurement }}</p>
                 <p>{{ item.reading }}</p>
                 <p v-if="item.quote" class="reading-quote">
                   <q lang="zh-Hant">{{ item.quote }}</q>
@@ -69,7 +74,20 @@ function restart() {
                 </p>
               </section>
             </div>
-          </details>
+            <details v-if="otherReadings.length" class="more-readings">
+              <summary>나머지 {{ otherReadings.length }}개 부위 보기</summary>
+              <p v-if="session.captureMetrics">카메라 촬영에서는 여러 프레임의 중앙값으로 측정했습니다.</p>
+              <details v-for="item in otherReadings" :key="item.key" class="interpretation reading-item">
+                <summary>{{ item.title }} <span class="reading-band" :class="'reading-' + item.band">{{ item.bandLabel }}</span></summary>
+                <p class="interpretation-measurement">{{ item.measurement }}</p>
+                <p>{{ item.reading }}</p>
+                <p v-if="item.quote" class="reading-quote">
+                  <q lang="zh-Hant">{{ item.quote }}</q>
+                  <a :href="item.url" target="_blank" rel="noopener">{{ item.reference }}</a>
+                </p>
+              </details>
+            </details>
+          </div>
         </template>
         <p v-else>점수를 계산할 얼굴 비율이 충분히 측정되지 않았습니다. 얼굴 전체가 보이는 정면 사진으로 다시 시도해 주세요.</p>
         <details v-if="interpretations.length" class="shape-details">
@@ -164,11 +182,16 @@ function restart() {
 .interpretation p{margin:5px 0 0;font-size:13px}
 .interpretation .interpretation-measurement{color:#81f5d1}
 .interpretation a{color:#81f5d1;text-decoration:underline}
-.reading-band{margin-left:6px;padding:1px 7px;border-radius:10px;background:#2b4f45;color:#c8dbd4;font-size:11px;font-weight:600;vertical-align:middle}
+.reading-band{white-space:nowrap;margin-left:6px;padding:1px 7px;border-radius:10px;background:#2b4f45;color:#c8dbd4;font-size:11px;font-weight:600;vertical-align:middle}
 .reading-high,.reading-low{background:#21d9a4;color:#06231b}
 .reading-quote{color:#a9c4bb}
 .reading-quote q{display:block;color:#e8f6f0;font-size:14px}
 .reading-quote a{font-size:12px}
+.readings-title{margin:4px 0 0;font-size:15px}
+.more-readings{margin-top:10px}
+.more-readings>summary{cursor:pointer;padding:10px;border:1px solid #367565;border-radius:8px;text-align:center;font-size:13px;font-weight:700}
+.reading-item{margin-top:8px}
+.reading-item summary{cursor:pointer;font-size:14px;font-weight:700}
 .measurement-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .measurement-group{padding:10px;border-radius:8px;background:#1b342d}
 .measurement-group h3{margin:0 0 8px;font-size:14px}
