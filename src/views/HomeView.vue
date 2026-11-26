@@ -82,7 +82,7 @@ async function selectPhoto(event) {
         </div>
       </div>
 
-      <p class="home-note">오락용 가상 결과입니다. 촬영 대상자의 동의를 받은 뒤 이용해 주세요. 분석을 시작하면 아래 개인정보 안내에 동의한 것으로 봅니다.</p>
+      <p class="home-note"><strong>오락용 가상 결과입니다.</strong> 촬영 대상자의 동의를 받은 뒤 이용해 주세요. 분석을 시작하면 아래 개인정보 안내에 동의한 것으로 봅니다.</p>
       <details class="privacy-note">
         <summary>개인정보 안내</summary>
         <p>사진과 얼굴 특징점은 이 기기의 메모리에서만 처리합니다. 서버로 보내거나 기기에 저장하지 않으며, 홈으로 돌아오면 지웁니다.</p>
@@ -109,6 +109,7 @@ async function selectPhoto(event) {
 .scan-reticle::before{content:"";position:absolute;inset:8px;background:linear-gradient(#6bffe1,#6bffe1) left top/17px 2px,linear-gradient(#6bffe1,#6bffe1) left top/2px 17px,linear-gradient(#6bffe1,#6bffe1) right top/17px 2px,linear-gradient(#6bffe1,#6bffe1) right top/2px 17px,linear-gradient(#6bffe1,#6bffe1) left bottom/17px 2px,linear-gradient(#6bffe1,#6bffe1) left bottom/2px 17px,linear-gradient(#6bffe1,#6bffe1) right bottom/17px 2px,linear-gradient(#6bffe1,#6bffe1) right bottom/2px 17px;background-repeat:no-repeat}
 .scan-reticle canvas{width:85%;height:auto;display:block;filter:drop-shadow(0 0 9px #28f2b66e)}
 .home-note{margin:14px auto 0;color:#a5bec7;font-size:12px;line-height:1.55;word-break:keep-all}
+.home-note strong{color:#6af3c8;font-size:13px;font-weight:800}
 .privacy-note{margin:10px auto 0;max-width:46ch;color:#a5bec7;font-size:12px;line-height:1.6;text-align:left;word-break:keep-all}
 .privacy-note summary{cursor:pointer;padding:6px 0;text-align:center;font-weight:700;color:#c9dde4}
 .privacy-note p{margin:6px 0 0}
