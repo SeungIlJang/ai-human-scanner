@@ -11,6 +11,7 @@ export async function getDetector(mode = 'IMAGE') {
         baseOptions: { modelAssetPath: `${import.meta.env.BASE_URL}models/face_landmarker.task`, delegate: 'CPU' },
         runningMode: 'IMAGE',
         numFaces: 2,
+        outputFaceBlendshapes: true,
         outputFacialTransformationMatrixes: true
       })
     })()

@@ -5,7 +5,7 @@ import { openCamera, stopCamera, captureCanvas } from '../services/cameraService
 import { getDetector } from '../services/faceDetector.js'
 import { session, resetSession } from '../stores/session.js'
 import FaceMesh from '../components/FaceMesh.vue'
-import { faceFraming, createAutoCaptureGate } from '../utils/autoCapture.js'
+import { faceFraming, createAutoCaptureGate, hasClosedEye } from '../utils/autoCapture.js'
 import { checkCapturedFace, isFacingCamera } from '../utils/captureQuality.js'
 
 const router = useRouter()
@@ -15,9 +15,9 @@ const status = ref('카메라를 준비하는 중...'), busy = ref(false)
 let detector, frameId, frameKind, run = 0, active = true
 let nextInferenceAt = 0, lastTimestamp = 0, lastMediaTime = -1
 let autoRetryAfter = 0
+let pendingHint, hintSince = 0
 let trackingCanvas, trackingContext
 const captureGate = createAutoCaptureGate()
-const poseMessage = '얼굴을 돌려 카메라를 정면으로 바라봐 주세요'
 
 function nextTimestamp() {
   lastTimestamp = Math.max(performance.now(), lastTimestamp + 1)
@@ -60,10 +60,9 @@ function processFrame(token, mediaTime) {
       nextInferenceAt = Math.max(now + 65, finishedAt + (finishedAt - now))
       faces.value = result.faceLandmarks
       if (now >= autoRetryAfter) {
-        const framing = cameraFraming(faces.value[0], video.value.videoWidth, video.value.videoHeight)
-        const ready = framing.ready && isFacingCamera(result.facialTransformationMatrixes[0])
-        status.value = framing.ready && !ready ? poseMessage : framing.message
-        if (captureGate.update({ ...framing, ready }, now)) { shoot(true); return }
+        const guidance = captureGuidance(result, video.value.videoWidth, video.value.videoHeight)
+        showTrackingHint(guidance.message, now)
+        if (captureGate.update(guidance, now)) { shoot(true); return }
       }
     }
   } catch (error) {
@@ -87,14 +86,31 @@ function trackFace() {
   trackingContext.drawImage(video.value, 0, 0, width, height)
   return detector.detectForVideo(trackingCanvas, nextTimestamp())
 }
-function cameraFraming(points, width, height) {
-  return faceFraming(points, width, height, frame.value.clientWidth, frame.value.clientHeight)
+function captureGuidance(result, width, height) {
+  const framing = faceFraming(result.faceLandmarks[0], width, height, frame.value.clientWidth, frame.value.clientHeight)
+  if (!framing.ready) return framing
+  if (!isFacingCamera(result.facialTransformationMatrixes[0])) {
+    return { ...framing, ready: false, message: '카메라를 정면으로 바라봐 주세요.' }
+  }
+  if (hasClosedEye(result.faceBlendshapes[0]?.categories)) {
+    return { ...framing, ready: false, message: '두 눈을 뜨고 카메라를 바라봐 주세요.' }
+  }
+  return framing
+}
+function showTrackingHint(message, now) {
+  if (message !== pendingHint) {
+    pendingHint = message
+    hintSince = now
+  }
+  // Keep a blink or a brief tracking drop from flashing a new prompt.
+  if (now - hintSince >= 300) status.value = message
 }
 async function start() {
   const token = ++run
   releaseCamera()
   faces.value = []
   captureGate.reset()
+  pendingHint = undefined
   autoRetryAfter = 0
   sourceSize.value = { width: 0, height: 0 }
   status.value = '카메라를 준비하는 중...'
@@ -144,9 +160,8 @@ async function shoot(automatic = false) {
       return
     }
     if (automatic) {
-      const framing = cameraFraming(landmarks[0], captured.width, captured.height)
-      const qualityIssue = !framing.ready ? framing.message
-        : !isFacingCamera(result.facialTransformationMatrixes[0]) ? poseMessage
+      const guidance = captureGuidance(result, captured.width, captured.height)
+      const qualityIssue = !guidance.ready ? guidance.message
         : checkCapturedFace(captured, landmarks[0])
       if (qualityIssue) {
         status.value = qualityIssue
@@ -171,6 +186,7 @@ async function resume(token) {
     detector = await getDetector('VIDEO')
     if (!active || token !== run) return
     captureGate.reset()
+    pendingHint = undefined
     autoRetryAfter = performance.now() + 1200
     busy.value = false
     schedule(token)
@@ -191,16 +207,31 @@ onBeforeUnmount(() => { active = false; ++run; releaseCamera() })
       <div ref="frame" class="camera-frame glow">
         <video ref="video" autoplay muted playsinline :style="{ transform: facing === 'user' ? 'scaleX(-1)' : '' }"></video>
         <FaceMesh :landmarks="faces" :mirrored="facing === 'user'" :source-width="sourceSize.width" :source-height="sourceSize.height" />
-        <div class="scan-info">{{ faces.length === 1 ? '● FACE DETECTED' : '○ SEARCHING FACE' }}</div>
+        <div class="camera-hint" role="status" aria-atomic="true" :class="{ 'camera-hint-error': status.includes('오류') || status.includes('거부') }">
+          {{ status }}
+        </div>
       </div>
       <div class="camera-controls panel">
         <span class="badge">● LOCAL CAMERA</span><h2>촬영 준비</h2>
         <p class="muted">얼굴 전체를 화면 중앙에 맞추고 잠시 움직이지 마세요. 자동 촬영이 어려우면 아래 버튼을 누를 수 있습니다.</p>
         <div class="notice">사진과 얼굴 특징점은 기기 밖으로 전송되지 않습니다. 촬영 대상자의 동의를 확인해 주세요.</div>
-        <p :class="status.includes('오류') || status.includes('거부') ? 'error' : 'muted'" role="status">{{ status }}</p>
         <div class="action-row"><button class="btn neon-btn" :disabled="faces.length !== 1 || busy" @click="shoot()">◉ &nbsp; 얼굴 촬영</button><button class="btn outline-btn" :disabled="busy" @click="switchCamera">카메라 전환</button><router-link class="btn text-btn" to="/">닫기</router-link></div>
       </div>
     </div>
   </section>
 </template>
-<style scoped>.camera-layout{display:grid;grid-template-columns:minmax(0,520px) 1fr;gap:28px;align-items:center}.camera-frame{width:min(100%,52.8vh)}.camera-controls{padding:28px}.camera-controls h2{font-size:27px;margin:24px 0 8px}.camera-controls .muted{line-height:1.8}.camera-controls .notice{margin:24px 0}@media(max-width:760px){.camera-layout{grid-template-columns:1fr}.camera-frame{width:min(100%,48vh)}.camera-controls{padding:20px}}</style>
+<style scoped>
+.camera-layout{display:grid;grid-template-columns:minmax(0,520px) 1fr;gap:28px;align-items:center}
+.camera-frame{width:min(100%,52.8vh)}
+.camera-hint{position:absolute;z-index:5;inset:auto 12px 12px;padding:10px 12px;border:1px solid #00ffaa70;border-radius:10px;background:#061218ee;color:#eafbf5;font-size:14px;font-weight:600;line-height:1.5;text-align:center;pointer-events:none}
+.camera-hint-error{border-color:#ff6e7c;color:#ffd7db}
+.camera-controls{padding:28px}
+.camera-controls h2{font-size:27px;margin:24px 0 8px}
+.camera-controls .muted{line-height:1.8}
+.camera-controls .notice{margin:24px 0}
+@media(max-width:760px){
+  .camera-layout{grid-template-columns:1fr}
+  .camera-frame{width:min(100%,48vh)}
+  .camera-controls{padding:20px}
+}
+</style>
