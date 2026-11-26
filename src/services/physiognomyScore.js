@@ -1,70 +1,79 @@
 import config from '../data/score-config.json' with { type: 'json' }
-import traditions from '../data/physiognomy-sources.json' with { type: 'json' }
+import ruleData from '../data/physiognomy-rules.json' with { type: 'json' }
 
-const extraScores = config.scores.filter(({ key }) =>
-  !['kindness', 'mischief', 'wit', 'flirt'].includes(key)
-)
-// Game reference points and spans in percentage points, not population norms.
-const scales = {
-  browGap: [20, 16], eyeGap: [27, 18], noseWidth: [30, 20], mouthWidth: [51, 26],
-  upperFace: [27, 16], midFace: [34, 24], lowerFace: [39, 30],
-  foreheadWidth: [75, 28], cheekWidth: [82, 34], jawWidth: [76, 28], noseLength: [26, 20]
-}
-
-const profiles = [
-  { job: '약초 정원사', animal: '사슴형' },
-  { job: '지도 제작자', animal: '여우형' },
-  { job: '도서관 사서', animal: '부엉이형' },
-  { job: '공방 장인', animal: '수달형' },
-  { job: '여행 상인', animal: '고양이형' }
-]
+const mainTraits = ['kindness', 'mischief', 'wit', 'lies']
+const extraScores = config.scores.filter(({ key }) => !['kindness', 'mischief', 'wit', 'flirt'].includes(key))
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value))
 
-export function createPhysiognomyScores(groups, concepts = traditions.concepts) {
-  if (!groups || !concepts.length) return null
-  const measuredValues = Object.assign({}, ...groups.map(group => group.metrics))
-  const basis = concepts.map(({ key, title, source, measurements }) => ({
-    key, title, source,
-    measurements: measurements.map(({ key, label }) => ({ key, label, value: measuredValues[key] }))
-  }))
-  if (basis.some(group => group.measurements.some(item => !Number.isFinite(item.value) || item.value <= 0))) return null
+// Position of a measurement between the rule's reference point (0) and the end of its span (±1).
+function position(rule, metrics) {
+  if (rule.sections) {
+    const offsets = rule.sections.map(key => {
+      const [center, span] = rule.sectionScales[key]
+      return Number.isFinite(metrics[key]) ? clamp(Math.abs(metrics[key] - center) / span, 0, 1) : NaN
+    })
+    // All three sections at their reference gives +1. An average offset of a full span gives -1.
+    return 1 - 2 * offsets.reduce((sum, offset) => sum + offset, 0) / offsets.length
+  }
+  const value = metrics[rule.metric]
+  return Number.isFinite(value) ? clamp((value - rule.center) / rule.span, -1, 1) : NaN
+}
 
-  // Change points gradually as ratios move. Do not hash a small difference into a new score.
-  const groupScores = Object.fromEntries(basis.map(group => {
-    const sum = group.measurements.reduce((total, item) => {
-      const [center, span] = scales[item.key]
-      return total + clamp((item.value - center) / span, -1, 1)
-    }, 0)
-    return [group.key, sum / group.measurements.length]
-  }))
-  const features = groupScores['five-features']
-  const thirds = groupScores['three-sections']
-  const contour = groupScores['five-mountains']
-  const kindness = Math.round(62 + 24 * (.40 * features - .20 * thirds + .40 * contour))
-  const mischief = Math.round(48 + 28 * (.55 * features + .20 * thirds - .25 * contour))
-  const wit = Math.round(57 + 27 * (.35 * features - .30 * thirds + .35 * contour))
-  const lieCount = Math.round(1200 + 450 * (.45 * features - .20 * thirds + .35 * contour))
-  const profileIndex = [-.33, -.14, .14, .33].filter(boundary =>
-    .55 * features + .15 * thirds + .30 * contour >= boundary
-  ).length
-  const profile = profiles[profileIndex]
-  const mixes = [.60 * features - .25 * thirds + .15 * contour, .30 * features + .35 * thirds - .35 * contour,
-    -.20 * features + .20 * thirds + .60 * contour, .30 * features - .30 * thirds + .40 * contour]
+function measurementText(rule, metrics) {
+  if (rule.sections) return `${rule.label} ${rule.sections.map(key => `${metrics[key]}%`).join(' / ')}`
+  return `${rule.label} ${metrics[rule.metric]}${rule.unit}`
+}
+
+// The readings come from the classical text. Converting them to points is this app's own game rule.
+export function createPhysiognomyScores(groups, data = ruleData) {
+  if (!groups || !data.rules.length) return null
+  const metrics = Object.assign({}, ...groups.map(group => group.metrics))
+  const totals = {}
+  const readings = []
+  for (const rule of data.rules) {
+    const at = position(rule, metrics)
+    if (!Number.isFinite(at)) {
+      if (rule.optional) continue
+      return null
+    }
+    for (const [trait, weight] of Object.entries(rule.traits)) totals[trait] = (totals[trait] ?? 0) + at * weight
+    const band = at >= data.threshold ? 'high' : at <= -data.threshold ? 'low' : 'mid'
+    const entry = rule[band]
+    readings.push({
+      key: rule.key, part: rule.part, title: rule.title, band,
+      bandLabel: entry.label ?? '표준에 가까움',
+      measurement: measurementText(rule, metrics),
+      reading: entry.reading,
+      quote: entry.quote,
+      reference: entry.quote ? `${data.source.title} 권${entry.volume} 〈${entry.section}〉` : undefined,
+      url: entry.quote ? data.source.volumes[entry.volume] : undefined,
+      strength: Math.round(Math.abs(at) * 100)
+    })
+  }
+  const total = trait => totals[trait] ?? 0
+  const points = trait => clamp(Math.round(data.base[trait] + total(trait)), 0, 100)
+  const mischief = points('mischief')
+  // Pick the type whose traits stand out most. Earlier entries win ties so the result is repeatable.
+  const strongest = (items, score) => items.reduce((best, item) => score(item) > score(best) ? item : best)
+  const animal = strongest(data.animals, item => item.traits.reduce((sum, trait) => sum + total(trait), 0))
+  const job = strongest(data.jobs, item => total(item.trait))
   return {
-    basis,
+    readings,
     highlights: [
-      { label: '인성 점수', value: kindness, unit: '점' },
-      { label: '거짓말 횟수', value: lieCount, unit: '회' },
+      { label: '인성 점수', value: points('kindness'), unit: '점' },
+      { label: '거짓말 횟수', value: Math.max(0, Math.round(data.base.lies + total('lies'))), unit: '회' },
       { label: '못된 점수', value: mischief, unit: '점' },
-      { label: '잔머리 지수', value: wit, unit: '점' },
-      { label: '전생 직업', value: profile.job },
-      { label: '동물 유형', value: profile.animal }
+      { label: '잔머리 지수', value: points('wit'), unit: '점' },
+      { label: '전생 직업', value: job.name },
+      { label: '동물 유형', value: animal.name }
     ],
     additional: [
       { key: 'mischiefCount', label: '못된 짓 횟수', value: 3 * mischief, unit: '회' },
-      ...extraScores.map(({ key, label, min, max }, index) => ({
-        key, label, unit: '점', value: clamp(Math.round(52 + 24 * mixes[index % mixes.length]), min, max)
+      ...extraScores.map(({ key, label, min, max }) => ({
+        key, label, unit: '점', value: clamp(Math.round(data.base.extra + total(key)), min, max)
       }))
     ]
   }
 }
+
+export const scoredTraits = [...mainTraits, ...extraScores.map(item => item.key)]

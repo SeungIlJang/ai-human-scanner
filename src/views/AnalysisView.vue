@@ -19,7 +19,8 @@ onMounted(() => {
     clearInterval(timer.value)
     const faceShape = measureFaceShape(session.landmarks?.[0], session.imageAspect)
     const measurements = measureFaceDetails(session.landmarks?.[0], session.imageAspect, faceShape?.total)
-    const scoreInputs = session.captureMetrics ? [{ metrics: session.captureMetrics }] : measurements
+    // The camera's multi-frame median has no symmetry value, so it comes from the captured photo.
+    const scoreInputs = session.captureMetrics ? [{ metrics: { ...session.captureMetrics, symmetry: faceShape?.total } }] : measurements
     session.result = { faceShape, measurements, scores: createPhysiognomyScores(scoreInputs) }
     completeTone()
     finishTimer = setTimeout(() => router.replace('/result'), 450)

@@ -7,7 +7,6 @@ import FaceMesh from '../components/FaceMesh.vue'
 import ScoreBar from '../components/ScoreBar.vue'
 
 const router = useRouter()
-const faceShape = computed(() => session.result?.faceShape)
 const scores = computed(() => session.result?.scores)
 const measurements = computed(() => session.result?.measurements)
 const interpretations = computed(() => measurements.value?.filter(group => group.interpretation) ?? [])
@@ -15,7 +14,6 @@ const interpretations = computed(() => measurements.value?.filter(group => group
 const shareStatus = ref('')
 async function share() {
   const lines = scores.value.highlights.map(item => `${item.label}: ${item.unit ? item.value.toLocaleString('ko-KR') + item.unit : item.value}`)
-  if (faceShape.value) lines.push(`관상 스캔 점수: ${faceShape.value.total}점`)
   const url = location.href.split('#')[0]
   const text = ['모두의 인성측정으로 본 내 관상 결과 (재미용)', ...lines].join('\n')
   try {
@@ -47,7 +45,7 @@ function restart() {
       <section class="shape-score primary-results" aria-labelledby="results-title">
         <h2 id="results-title">관상 결과</h2>
         <template v-if="scores">
-          <p>사진 속 얼굴을 오관·삼정·오악 기준으로 나눠 측정한 뒤 재미용 점수를 계산합니다.</p>
+          <p>사진 속 얼굴을 측정해 《신상전편》의 부위별 풀이와 견준 뒤 재미용 점수로 환산합니다.</p>
           <dl class="result-highlights">
             <div v-for="item in scores.highlights" :key="item.label">
               <dt>{{ item.label }}</dt>
@@ -56,28 +54,27 @@ function restart() {
             </div>
           </dl>
           <p>점수와 유형은 재미용 결과입니다. 실제 인성이나 행동을 평가하는 수치가 아닙니다.</p>
-          <details class="shape-details">
-            <summary>점수에 반영된 관상 기준</summary>
-            <p>전통 관상 자료는 어떤 부위를 살펴볼지 정하는 데 쓰고, 점수와 유형은 앱의 규칙으로 생성합니다. 오관에서는 눈썹·눈·코·입의 사진 측정값을 사용합니다.</p>
-            <p v-if="session.captureMetrics">카메라 촬영 점수에는 여러 프레임의 중앙값을 사용했습니다. 상세설명은 아래에 표시된 촬영 사진을 기준으로 합니다.</p>
-            <p>얼굴 측정값이 같으면 점수와 유형도 같아요.</p>
-            <div class="measurement-grid">
-              <section v-for="group in scores.basis" :key="group.key" class="measurement-group">
-                <h3>{{ group.title }}</h3>
-                <dl>
-                  <div v-for="item in group.measurements" :key="item.key">
-                    <dt>{{ item.label }}</dt><dd>{{ item.value }}%</dd>
-                  </div>
-                </dl>
-                <a class="basis-source" :href="traditions.sources[group.source].url" target="_blank" rel="noopener">분류 출처</a>
+          <details class="shape-details" open>
+            <summary>관상 풀이 · {{ scores.readings.length }}개 부위</summary>
+            <p>풀이의 근거 구절은 옛 관상서 《신상전편》에서 가져왔습니다. 측정값이 표준에서 벗어난 정도를 점수로 바꾸는 방식과 전생 직업·동물 유형은 이 앱이 정한 놀이 규칙입니다.</p>
+            <p v-if="session.captureMetrics">카메라 촬영에서는 여러 프레임의 중앙값으로 측정했습니다.</p>
+            <div class="interpretations">
+              <section v-for="item in scores.readings" :key="item.key" class="interpretation">
+                <h3>{{ item.title }} <span class="reading-band" :class="'reading-' + item.band">{{ item.bandLabel }}</span></h3>
+                <p class="interpretation-measurement">{{ item.measurement }}</p>
+                <p>{{ item.reading }}</p>
+                <p v-if="item.quote" class="reading-quote">
+                  <q lang="zh-Hant">{{ item.quote }}</q>
+                  <a :href="item.url" target="_blank" rel="noopener">{{ item.reference }}</a>
+                </p>
               </section>
             </div>
           </details>
         </template>
         <p v-else>점수를 계산할 얼굴 비율이 충분히 측정되지 않았습니다. 얼굴 전체가 보이는 정면 사진으로 다시 시도해 주세요.</p>
         <details v-if="interpretations.length" class="shape-details">
-          <summary>관상 상세설명 · {{ interpretations.length }}개 항목</summary>
-          <p>아래 문장은 이 사진의 이목구비에서 보이는 인상을 풀어 쓴 재미용 해석입니다.</p>
+          <summary>사진 속 인상 설명 · {{ interpretations.length }}개 항목</summary>
+          <p>아래 문장은 측정값을 보이는 인상으로 풀어 쓴 설명이며, 관상서의 풀이와는 별개입니다.</p>
           <div class="interpretations">
             <section v-for="group in interpretations" :key="group.title" class="interpretation">
               <h3>{{ group.title }}</h3>
@@ -92,18 +89,8 @@ function restart() {
         </details>
       </section>
       <section class="shape-score" aria-labelledby="shape-title">
-        <div class="shape-heading">
-          <h2 id="shape-title">관상 스캔 점수</h2>
-          <strong v-if="faceShape">{{ faceShape.total }}점<small> / 100</small></strong>
-        </div>
-        <template v-if="faceShape">
-          <p>사진에서 측정한 눈, 볼, 입꼬리의 좌우 균형 평균입니다.</p>
-          <div class="featured-scores">
-            <ScoreBar v-for="item in faceShape.scores" :key="item.label" :label="item.label" :value="item.value" />
-          </div>
-          <p>얼굴 너비는 높이의 {{ faceShape.widthToHeight }}%, 눈 사이 간격은 얼굴 너비의 {{ faceShape.eyeGapToWidth }}%입니다.</p>
-        </template>
-        <p v-else>이 사진에서 얼굴 비율을 측정하지 못했습니다.</p>
+        <h2 id="shape-title">측정값과 출처</h2>
+        <p v-if="!measurements">이 사진에서 얼굴 비율을 측정하지 못했습니다.</p>
         <details v-if="measurements" class="shape-details">
           <summary>부위별 얼굴 측정값</summary>
           <p>사진 속 비율과 각도입니다. 얼굴형은 앱의 비율 기준으로 추정합니다. 이마와 상·중·하 비율은 모델의 이마 위쪽 점을 기준으로 하며, 광대 깊이는 사진에서 추정한 상대값입니다. 눈·눈썹·입꼬리 각도에서 양수는 바깥쪽이 위로 향한다는 뜻입니다.</p>
@@ -128,7 +115,7 @@ function restart() {
             </li>
           </ul>
           <ul class="tradition-list">
-            <li v-for="key in ['mai', 'shenxiang', 'riss']" :key="key">
+            <li v-for="key in ['shenxiangText', 'mai', 'shenxiang', 'riss']" :key="key">
               <a :href="traditions.sources[key].url" target="_blank" rel="noopener">{{ traditions.sources[key].title }}</a>
             </li>
           </ul>
@@ -163,10 +150,6 @@ function restart() {
 .result-highlights .result-text{font-size:clamp(16px,4vw,20px);line-height:1.4;word-break:keep-all;overflow-wrap:anywhere}
 .shape-score h2{margin:0;font-size:17px}
 .primary-results h2{font-size:20px}
-.shape-heading{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px}
-.shape-heading h2{margin:0;font-size:17px}
-.shape-heading strong{color:#21d9a4;font-size:23px}
-.shape-heading small{color:#bfd1ca;font-size:12px;font-weight:400}
 .shape-score p{margin:8px 0 12px;color:#c8dbd4;font-size:12px;line-height:1.6}
 .shape-score p:last-child{margin-bottom:0}
 .shape-details{margin-top:12px;padding-top:10px;border-top:1px solid #367565}
@@ -181,6 +164,11 @@ function restart() {
 .interpretation p{margin:5px 0 0;font-size:13px}
 .interpretation .interpretation-measurement{color:#81f5d1}
 .interpretation a{color:#81f5d1;text-decoration:underline}
+.reading-band{margin-left:6px;padding:1px 7px;border-radius:10px;background:#2b4f45;color:#c8dbd4;font-size:11px;font-weight:600;vertical-align:middle}
+.reading-high,.reading-low{background:#21d9a4;color:#06231b}
+.reading-quote{color:#a9c4bb}
+.reading-quote q{display:block;color:#e8f6f0;font-size:14px}
+.reading-quote a{font-size:12px}
 .measurement-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .measurement-group{padding:10px;border-radius:8px;background:#1b342d}
 .measurement-group h3{margin:0 0 8px;font-size:14px}

@@ -7,7 +7,7 @@ import { session, resetSession } from '../stores/session.js'
 import FaceMesh from '../components/FaceMesh.vue'
 import { faceFraming, createAutoCaptureGate, hasClosedEye, faceExpression, scanGuide } from '../utils/autoCapture.js'
 import { checkCapturedFace, isFacingCamera } from '../utils/captureQuality.js'
-import { extractFaceMetrics, measureFaceDetails, medianFaceMetrics } from '../services/faceMeasurements.js'
+import { extractFaceMetrics, measureFaceDetails, medianFaceMetrics, stableMetricKeys } from '../services/faceMeasurements.js'
 
 const router = useRouter()
 const video = ref(null), frame = ref(null), stream = shallowRef(null), facing = ref('user')
@@ -207,7 +207,7 @@ async function shoot(measurements) {
       return
     }
     const median = medianFaceMetrics(measurements)
-    if (Object.entries(median).some(([key, value]) => Math.abs(value - guidance.metrics[key]) > 5)) {
+    if (stableMetricKeys.some(key => Math.abs(median[key] - guidance.metrics[key]) > 5)) {
       status.value = '촬영 순간 얼굴이 움직였어요. 정면을 보고 그대로 있어 주세요.'
       await resume(token)
       return

@@ -1,11 +1,18 @@
 const percent = (part, whole) => whole > 0 && Number.isFinite(part) ? Math.round(100 * part / whole) : null
 const degrees = radians => Math.round(radians * 180 / Math.PI)
+const percentTenths = (part, whole) => whole > 0 && Number.isFinite(part) ? Math.round(1000 * part / whole) / 10 : null
 const average = (a, b) => (a + b) / 2
+
+// Angles in degrees. Unlike the ratios, zero and negative values are valid.
+const signedMetrics = new Set(['browTilt', 'eyeTilt', 'mouthTilt'])
+// The camera compares these between frames to detect movement. They change little with expression.
+export const stableMetricKeys = ['browGap', 'eyeGap', 'noseWidth', 'mouthWidth', 'upperFace', 'midFace', 'lowerFace',
+  'foreheadWidth', 'cheekWidth', 'jawWidth', 'noseLength']
 
 export function extractFaceMetrics(groups) {
   if (!groups?.length) return null
   const metrics = Object.assign({}, ...groups.map(group => group.metrics))
-  return Object.values(metrics).every(value => Number.isFinite(value) && value > 0) ? metrics : null
+  return Object.entries(metrics).every(([key, value]) => Number.isFinite(value) && (value > 0 || signedMetrics.has(key))) ? metrics : null
 }
 
 export function medianFaceMetrics(samples) {
@@ -58,6 +65,8 @@ export function measureFaceDetails(points, aspect, symmetry) {
   const noseLengthRatio = percent(h(168, 2), height)
   const mouthWidth = w(61, 291)
   const mouthWidthRatio = percent(mouthWidth, width)
+  const lipThicknessRatio = percentTenths(h(0, 13) + h(14, 17), mouthWidth)
+  const philtrumRatio = percentTenths(h(2, 0), height)
   const upper = v(9) - v(10), middle = v(2) - v(9), lower = v(152) - v(2)
   const thirds = [upper, middle, lower].every(n => n > 0) ? [
     Math.round(upper / height * 1000) / 10,
@@ -88,7 +97,7 @@ export function measureFaceDetails(points, aspect, symmetry) {
       row('얼굴 높이 대비 이마 높이', percent(upper > 0 ? upper : NaN, height)),
       row('얼굴 너비 대비 이마 너비', foreheadWidthRatio)
     ] },
-    { title: '눈', metrics: { eyeGap: eyeGapRatio }, interpretation: cornerImpression('눈꼬리', eyeCornerAngle, [
+    { title: '눈', metrics: { eyeGap: eyeGapRatio, eyeLength: percentTenths(eyeWidth, width), eyeTilt: eyeCornerAngle }, interpretation: cornerImpression('눈꼬리', eyeCornerAngle, [
       '눈매 끝이 살짝 내려가 있어 사진에서 부드럽고 편안한 인상으로 보일 수 있어요.',
       '눈매가 수평에 가까워 사진에서 차분해 보일 수 있어요.',
       '눈매 끝이 살짝 올라가 있어 사진에서 또렷한 인상으로 보일 수 있어요.'
@@ -98,7 +107,7 @@ export function measureFaceDetails(points, aspect, symmetry) {
       row('두 눈 사이 / 얼굴 너비', eyeGapRatio),
       row('눈꼬리 평균 기울기', eyeCornerAngle, '°')
     ] },
-    { title: '눈썹', metrics: { browGap: browGapRatio }, interpretation: cornerImpression('눈썹', browAngle, [
+    { title: '눈썹', metrics: { browGap: browGapRatio, browLength: percent(browWidth, eyeWidth), browTilt: browAngle }, interpretation: cornerImpression('눈썹', browAngle, [
       '눈썹 바깥쪽이 내려가 있어 눈 위의 선이 부드럽게 이어져 보일 수 있어요.',
       '눈썹의 양끝 높이가 비슷해 눈 위의 선이 차분하고 고르게 보일 수 있어요.',
       '눈썹 바깥쪽이 올라가 있어 눈 위의 선이 또렷하게 보일 수 있어요.'
@@ -106,6 +115,7 @@ export function measureFaceDetails(points, aspect, symmetry) {
       row('평균 눈썹 길이 / 얼굴 너비', percent(browWidth, width)),
       row('평균 눈썹 두께 / 눈썹 길이', percent(average(h(105, 52), h(334, 282)), browWidth)),
       row('두 눈썹 사이 / 얼굴 너비', browGapRatio),
+      row('평균 눈썹 길이 / 눈 길이', percent(browWidth, eyeWidth)),
       row('눈썹 평균 기울기', browAngle, '°')
     ] },
     { title: '코', metrics: { noseWidth: noseWidthRatio, noseLength: noseLengthRatio }, interpretation: noseImpression(noseWidthRatio, eyeGapRatio), rows: [
@@ -113,13 +123,14 @@ export function measureFaceDetails(points, aspect, symmetry) {
       row('콧방울 너비 / 얼굴 너비', noseWidthRatio),
       row('콧방울 너비 / 코 길이', percent(noseWidth, h(168, 2)))
     ] },
-    { title: '입', metrics: { mouthWidth: mouthWidthRatio }, interpretation: cornerImpression('입꼬리', mouthAngle, [
+    { title: '입', metrics: { mouthWidth: mouthWidthRatio, lipThickness: lipThicknessRatio, mouthTilt: mouthAngle, philtrum: philtrumRatio }, interpretation: cornerImpression('입꼬리', mouthAngle, [
       '입꼬리가 살짝 내려가 있어 이 사진에서는 진지한 표정처럼 보일 수 있어요.',
       '입꼬리가 수평에 가까워 이 사진에서는 담담한 표정처럼 보일 수 있어요.',
       '입꼬리가 살짝 올라가 있어 이 사진에서는 은은한 미소처럼 보일 수 있어요.'
     ]), rows: [
       row('입 너비 / 얼굴 너비', mouthWidthRatio),
-      row('입술 두께 합 / 입 너비', percent(h(0, 13) + h(14, 17), mouthWidth)),
+      row('입술 두께 합 / 입 너비', lipThicknessRatio),
+      row('인중 길이 / 얼굴 높이', philtrumRatio),
       row('입꼬리 평균 기울기', mouthAngle, '°')
     ] },
     { title: '턱', metrics: { jawWidth: jawWidthRatio }, interpretation: chinImpression(chinAngle, jawWidthRatio), rows: [
@@ -131,7 +142,7 @@ export function measureFaceDetails(points, aspect, symmetry) {
       row('광대 양끝 너비 / 얼굴 높이', widthRatio),
       row('관자·턱 대비 광대의 상대 깊이 추정', cheekDepthRatio)
     ] },
-    { title: '전체', metrics: { upperFace: thirds?.[0], midFace: thirds?.[1], lowerFace: thirds?.[2] }, interpretation: overallImpression(thirds, symmetry), rows: [
+    { title: '전체', metrics: { upperFace: thirds?.[0], midFace: thirds?.[1], lowerFace: thirds?.[2], ...(Number.isFinite(symmetry) ? { symmetry } : {}) }, interpretation: overallImpression(thirds, symmetry), rows: [
       { label: '상·중·하 비율', value: thirds ? thirds.map(n => `${n}%`).join(' / ') : '측정할 수 없음' },
       row('좌우 균형 점수', symmetry, '점')
     ] }
