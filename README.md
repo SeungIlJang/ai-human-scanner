@@ -26,7 +26,7 @@ npm run preview
 - MediaPipe Face Landmarker 특징점 478개와 연결선 HUD
 - 사진 속 눈 너비, 볼 간격, 입꼬리 간격의 좌우 균형을 평균한 관상 스캔 점수와 얼굴 비율 표시
 - 4초 스캔, 단계 메시지, 완료음, 점수 카운트 애니메이션
-- 인성 점수, 거짓말 횟수, 못된 짓 횟수, 잔머리 지수를 얼굴 스캔 아래 표시하고 다른 점수는 하단에서 펼쳐 보기
+- 인성 점수, 거짓말 횟수, 못된 짓 횟수, 잔머리 지수, 전생 직업, 동물 유형을 얼굴 스캔 아래 표시하고 다른 점수는 하단에서 펼쳐 보기
 - Hash Router, GitHub Pages 자동 배포, 요청 시 로컬 모델/WASM 캐시
 
 점수 범위는 `src/data/score-config.json`에서 관리합니다. `src/services/physiognomyScore.js`는 `src/data/physiognomy-sources.json`에 기록한 전통 관상 분류의 적용 대상과 사진의 측정값을 결합해 재미용 점수를 생성합니다. 전통 분류는 부위 선택에 쓰이며 점수 생성 규칙은 앱에서 정합니다.

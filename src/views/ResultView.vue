@@ -33,13 +33,14 @@ function restart() {
           <dl class="result-highlights">
             <div v-for="item in scores.highlights" :key="item.label">
               <dt>{{ item.label }}</dt>
-              <dd>{{ item.value.toLocaleString('ko-KR') }}<small>{{ item.unit }}</small></dd>
+              <dd v-if="item.unit">{{ item.value.toLocaleString('ko-KR') }}<small>{{ item.unit }}</small></dd>
+              <dd v-else class="result-text">{{ item.value }}</dd>
             </div>
           </dl>
-          <p>실제 인성이나 행동을 평가하는 수치가 아닙니다.</p>
+          <p>점수와 유형은 재미용 결과입니다. 실제 인성이나 행동을 평가하는 수치가 아닙니다.</p>
           <details class="shape-details">
             <summary>점수에 반영된 관상 기준</summary>
-            <p>전통 관상 자료는 어떤 부위를 살펴볼지 정하는 데 쓰고, 네 가지 수치는 앱의 규칙으로 생성합니다. 오관에서는 눈썹·눈·코·입의 사진 측정값을 사용합니다.</p>
+            <p>전통 관상 자료는 어떤 부위를 살펴볼지 정하는 데 쓰고, 점수와 유형은 앱의 규칙으로 생성합니다. 오관에서는 눈썹·눈·코·입의 사진 측정값을 사용합니다.</p>
             <div class="measurement-grid">
               <section v-for="group in scores.basis" :key="group.key" class="measurement-group">
                 <h3>{{ group.title }}</h3>
@@ -132,6 +133,7 @@ function restart() {
 .result-highlights dt{font-size:13px;color:#e8f6f0}
 .result-highlights dd{margin:2px 0 0;color:#6af3c8;font-size:clamp(22px,6vw,34px);font-weight:800;font-variant-numeric:tabular-nums}
 .result-highlights small{margin-left:2px;font-size:13px}
+.result-highlights .result-text{font-size:clamp(16px,4vw,20px);line-height:1.4;word-break:keep-all;overflow-wrap:anywhere}
 .shape-score h2{margin:0;font-size:17px}
 .primary-results h2{font-size:20px}
 .shape-heading{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px}

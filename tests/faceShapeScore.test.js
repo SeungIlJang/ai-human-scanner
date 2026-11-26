@@ -52,8 +52,11 @@ test('scores are repeatable and change when either the face or the source-based 
   delete modified[98]
   assert.equal(createPhysiognomyScores(measureFaceDetails(modified, 1.2, 100)), null)
   assert.deepEqual(result.highlights.map(item => [item.label, item.unit]), [
-    ['인성 점수', '점'], ['거짓말 횟수', '회'], ['못된 짓 횟수', '회'], ['잔머리 지수', '점']
+    ['인성 점수', '점'], ['거짓말 횟수', '회'], ['못된 짓 횟수', '회'], ['잔머리 지수', '점'],
+    ['전생 직업', undefined], ['동물 유형', undefined]
   ])
+  assert.ok(result.highlights[4].value.length > 0)
+  assert.match(result.highlights[5].value, /형$/)
   assert.ok(result.highlights[2].value >= 0 && result.highlights[2].value <= 300)
   const additional = new Map(result.additional.map(item => [item.label, item.value]))
   assert.ok(additional.has('고집 지수') && additional.has('유머 지수'))
