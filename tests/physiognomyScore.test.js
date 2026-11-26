@@ -121,3 +121,51 @@ test('every kindness score has a grade and a link preview image', async () => {
   assert.equal(score(reference).grade, rules.grades.find(grade => value(score(reference), '인성 점수') >= grade.min))
   assert.ok(kind.grade.min > unkind.grade.min)
 })
+
+test('the best fortune follows the features the text ties to it', () => {
+  const pick = metrics => score({ ...reference, ...metrics })
+  assert.equal(pick({ noseWidth: 26, mouthWidth: 42, jawWidth: 87 }).fortune.key, 'wealth')
+  assert.equal(pick({ upperFace: 22.5, foreheadWidth: 80, eyeLength: 21, browGap: 26, mouthTilt: 6 }).fortune.key, 'career')
+  assert.equal(pick({ noseLength: 35.5, midFace: 44, philtrum: 9.4 }).fortune.key, 'lateLuck')
+  assert.equal(pick({ lipThickness: 38, browLength: 193 }).fortune.key, 'people')
+  const wealth = pick({ noseWidth: 26, mouthWidth: 42, jawWidth: 87 }).fortune
+  assert.ok(wealth.name && wealth.title && wealth.reading && wealth.quote && wealth.url, 'a fortune comes with its passage')
+  // Only the features that really stand out are named.
+  const oneStrong = pick({ lipThickness: 38.5, browLength: 170 }).fortune
+  assert.equal(oneStrong.key, 'people')
+  assert.deepEqual(oneStrong.features, [rules.rules.find(rule => rule.key === 'lipThickness').title])
+  assert.equal(pick({ lipThickness: 38, browLength: 193 }).fortune.features.length, 2)
+})
+
+test('"king" needs both the career and the power features, and an ordinary face is called balanced', () => {
+  const career = { upperFace: 22.5, foreheadWidth: 80, eyeLength: 21, browGap: 26, mouthTilt: 6 }
+  const power = { cheekWidth: 84, browTilt: -6 }
+  assert.equal(score({ ...reference, ...career, ...power }).fortune.key, 'king')
+  assert.equal(score({ ...reference, ...power }).fortune.key, 'power')
+  assert.equal(score({ ...reference, ...career }).fortune.key, 'career')
+  const ordinary = score(reference)
+  assert.equal(ordinary.fortune.key, 'balance')
+  assert.equal(ordinary.caution.key, 'none')
+  assert.ok(ordinary.caution.reading)
+})
+
+test('the caution is the feature that leans furthest the way the text warns about', () => {
+  const thin = score({ ...reference, lipThickness: 17, noseWidth: 20 })
+  assert.equal(thin.caution.key, 'lipThickness')
+  assert.equal(thin.caution.quote, '上下俱薄者，妄語')
+  assert.equal(score({ ...reference, eyeTilt: 7, lipThickness: 26 }).caution.key, 'eyeTilt')
+  // Thick lips are the favorable direction, so they are never the caution.
+  assert.notEqual(score({ ...reference, lipThickness: 40 }).caution.key, 'lipThickness')
+  for (const rule of rules.rules.filter(item => item.caution)) {
+    assert.ok(rule[rule.caution.band].quote, `${rule.key} caution needs the passage for that side`)
+    assert.ok(rule.caution.name && rule.caution.reading.length > 10, rule.key)
+  }
+  const known = new Set(rules.rules.map(rule => rule.key))
+  for (const item of [...rules.fortunes.items, rules.fortunes.balanced]) for (const key of item.rules) assert.ok(known.has(key), `${item.key} ${key}`)
+})
+
+test('fortunes and cautions never predict death, illness or poverty', () => {
+  const texts = [...rules.fortunes.items, rules.fortunes.balanced, rules.fortunes.king, rules.fortunes.noCaution].map(item => item.reading)
+    .concat(rules.rules.filter(rule => rule.caution).map(rule => rule.caution.reading))
+  for (const text of texts) assert.doesNotMatch(text, /단명|요절|죽|병에|가난|망한/, text)
+})

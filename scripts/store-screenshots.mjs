@@ -93,13 +93,16 @@ try {
   await shot('phone-3-result.png')
   await run(`document.querySelector('.result-highlights').scrollIntoView({ block: 'start' }); window.scrollBy(0, -52)`)
   await shot('phone-4-scores.png')
+  await run(`document.querySelector('.fortune-cards').scrollIntoView({ block: 'start' }); window.scrollBy(0, -16)`)
+  await shot('phone-5-fortune.png')
   await run(`document.querySelector('.readings-title').scrollIntoView({ block: 'start' }); window.scrollBy(0, -16)`)
-  await shot('phone-5-readings.png')
+  await shot('phone-6-readings.png')
   await run(`const more = document.querySelector('.additional-scores'); more.open = true; more.scrollIntoView({ block: 'start' }); window.scrollBy(0, -16)`)
-  await shot('phone-6-more-scores.png')
+  await shot('phone-7-more-scores.png')
   socket.close()
 } finally {
   child.kill()
   await sleep(500)
-  rmSync(profile, { recursive: true, force: true, maxRetries: 5 })
+  // The browser can still hold a file for a moment. A leftover temp profile is harmless.
+  try { rmSync(profile, { recursive: true, force: true, maxRetries: 5 }) } catch {}
 }

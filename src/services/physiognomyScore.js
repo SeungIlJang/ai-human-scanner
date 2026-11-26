@@ -24,18 +24,54 @@ function measurementText(rule, metrics) {
   return `${rule.label} ${metrics[rule.metric]}${rule.unit}`
 }
 
+const cite = (data, entry) => entry?.quote ? {
+  quote: entry.quote,
+  reference: `${data.source.title} 권${entry.volume} 〈${entry.section}〉`,
+  url: data.source.volumes[entry.volume]
+} : {}
+
+// The single best fortune and the single thing to watch. Which features count toward which fortune, and the
+// "king" title, are this app's own game rules; the passage shown with each comes from the classical text.
+function pickFortune(data, positions) {
+  const rules = Object.fromEntries(data.rules.map(rule => [rule.key, rule]))
+  const { items, balanced, king, minimum, noCaution } = data.fortunes
+  // A fortune's score is the average position of its features, so one unfavorable feature pulls it down.
+  const score = item => item.rules.reduce((sum, key) => sum + positions[key], 0) / item.rules.length
+  const scores = Object.fromEntries(items.map(item => [item.key, score(item)]))
+  let best = items.reduce((top, item) => scores[item.key] > scores[top.key] ? item : top)
+  if (king.requires.every(key => scores[key] >= king.minimum)) best = { ...king, rules: king.requires.flatMap(key => items.find(item => item.key === key).rules) }
+  // No fortune stands out on a face close to the reference. The text praises exactly that evenness.
+  else if (scores[best.key] < minimum) best = balanced
+  const support = best.rules.reduce((top, key) => positions[key] > positions[top] ? key : top)
+  // Name the features that actually stand out, since a fortune can win on one strong feature alone.
+  const standouts = best.rules.filter(key => positions[key] >= data.threshold)
+  const features = (standouts.length ? standouts : [support]).map(key => rules[key].title)
+  const fortune = { key: best.key, name: best.name, emoji: best.emoji, title: best.title, reading: best.reading, features, ...cite(data, rules[support].high) }
+
+  // The feature that leans furthest in the direction the text warns about.
+  const lean = rule => rule.caution.band === 'low' ? -positions[rule.key] : positions[rule.key]
+  const worst = data.rules.filter(rule => rule.caution && rule.key in positions)
+    .reduce((top, rule) => !top || lean(rule) > lean(top) ? rule : top, null)
+  const caution = worst && lean(worst) >= noCaution.minimum
+    ? { key: worst.key, name: worst.caution.name, reading: worst.caution.reading, ...cite(data, worst[worst.caution.band]) }
+    : { key: 'none', name: noCaution.name, reading: noCaution.reading }
+  return { fortune, caution }
+}
+
 // The readings come from the classical text. Converting them to points is this app's own game rule.
 export function createPhysiognomyScores(groups, data = ruleData) {
   if (!groups || !data.rules.length) return null
   const metrics = Object.assign({}, ...groups.map(group => group.metrics))
   const totals = {}
   const readings = []
+  const positions = {}
   for (const rule of data.rules) {
     const at = position(rule, metrics)
     if (!Number.isFinite(at)) {
       if (rule.optional) continue
       return null
     }
+    positions[rule.key] = at
     for (const [trait, weight] of Object.entries(rule.traits)) totals[trait] = (totals[trait] ?? 0) + at * weight
     const band = at >= data.threshold ? 'high' : at <= -data.threshold ? 'low' : 'mid'
     const entry = rule[band]
@@ -60,6 +96,7 @@ export function createPhysiognomyScores(groups, data = ruleData) {
   const job = strongest(data.jobs, item => total(item.trait))
   return {
     readings,
+    ...pickFortune(data, positions),
     // Grades are listed from the highest threshold down.
     grade: data.grades.find(item => kindness >= item.min),
     highlights: [

@@ -26,13 +26,12 @@ const stat = label => scores.value.highlights.find(item => item.label === label)
 // Each score has its own page so that the link preview shows that score and grade.
 const shareUrl = () => `${site}s/${stat('인성 점수')}.html`
 function shareText() {
-  const { grade } = scores.value
+  const { grade, fortune, caution } = scores.value
   // Korean particles depend on whether the last syllable ends in a consonant.
   const endsInConsonant = word => (word.charCodeAt(word.length - 1) - 0xAC00) % 28 > 0
-  const job = stat('전생 직업')
   return [
     `나 인성 ${stat('인성 점수')}점 나왔어 ${grade.emoji} "${grade.name}"${endsInConsonant(grade.name) ? '이래' : '래'}!`,
-    `평생 거짓말은 ${stat('거짓말 횟수').toLocaleString('ko-KR')}번, 전생엔 ${job}${endsInConsonant(job) ? '이었대' : '였대'} ㅋㅋ`,
+    `${fortune.emoji} ${fortune.title}인데, ${caution.name}만 조심하래 ㅋㅋ`,
     '너는 몇 점인지 얼굴만 찍어 봐 👇'
   ].join('\n')
 }
@@ -102,6 +101,26 @@ function restart() {
               <dd v-if="item.label === '인성 점수'" class="grade-name" :style="{ color: scores.grade.color }">{{ scores.grade.emoji }} {{ scores.grade.name }}</dd>
             </div>
           </dl>
+          <div class="fortune-cards">
+            <section class="fortune-card fortune-best">
+              <h3><span>가장 좋은 것</span>{{ scores.fortune.emoji }} {{ scores.fortune.name }}</h3>
+              <p class="fortune-title">{{ scores.fortune.title }}</p>
+              <p>{{ scores.fortune.reading }}</p>
+              <p class="fortune-features">돋보인 부위: {{ scores.fortune.features.join(', ') }}</p>
+              <p v-if="scores.fortune.quote" class="reading-quote">
+                <q lang="zh-Hant">{{ scores.fortune.quote }}</q>
+                <a :href="scores.fortune.url" target="_blank" rel="noopener">{{ scores.fortune.reference }}</a>
+              </p>
+            </section>
+            <section class="fortune-card fortune-caution">
+              <h3><span>가장 주의할 것</span>⚠️ {{ scores.caution.name }}</h3>
+              <p>{{ scores.caution.reading }}</p>
+              <p v-if="scores.caution.quote" class="reading-quote">
+                <q lang="zh-Hant">{{ scores.caution.quote }}</q>
+                <a :href="scores.caution.url" target="_blank" rel="noopener">{{ scores.caution.reference }}</a>
+              </p>
+            </section>
+          </div>
           <div class="share-actions">
             <button class="share-button" :disabled="sharing" @click="shareLink">친구에게 공유</button>
             <button class="share-button share-secondary" :disabled="sharing" @click="shareImage">이미지로 공유</button>
@@ -248,6 +267,16 @@ function restart() {
 .tradition-list{padding-left:19px;color:#c8dbd4;font-size:13px;line-height:1.6}
 .tradition-list a{display:block;text-decoration:underline;color:#81f5d1}
 .share-button{white-space:nowrap;width:100%;min-height:48px;border:0;border-radius:8px;background:#21d9a4;color:#06231b;font-size:15px;font-weight:800;cursor:pointer}
+.fortune-cards{display:grid;gap:8px;margin:4px 0 12px}
+.fortune-card{padding:12px;border-radius:10px;border:1px solid #2f8f78;background:#17352e}
+.fortune-caution{border-color:#8f6a2f;background:#33291a}
+.fortune-card h3{margin:0;font-size:19px;line-height:1.35}
+.fortune-card h3 span{display:block;color:#6af3c8;font-size:12px;font-weight:700}
+.fortune-caution h3 span{color:#ffc46b}
+.fortune-card p{margin:5px 0 0;font-size:13px}
+.fortune-card .fortune-title{color:#6af3c8;font-size:14px;font-weight:700}
+.fortune-card .fortune-features{color:#a9c4bb;font-size:12px}
+.fortune-card a{color:#81f5d1;text-decoration:underline}
 .share-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .share-secondary{background:#1b342d;color:#6af3c8;border:1px solid #21d9a4}
 .share-button:disabled{opacity:.6}

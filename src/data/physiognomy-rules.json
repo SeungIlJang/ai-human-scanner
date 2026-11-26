@@ -10,183 +10,910 @@
     }
   },
   "threshold": 0.3,
-  "base": { "kindness": 60, "mischief": 45, "wit": 55, "lies": 1200, "extra": 50 },
+  "base": {
+    "kindness": 60,
+    "mischief": 45,
+    "wit": 55,
+    "lies": 1200,
+    "extra": 50
+  },
   "rules": [
     {
-      "key": "browGap", "part": "눈썹", "title": "인당(印堂) · 눈썹 사이", "metric": "browGap",
-      "label": "눈썹 사이 / 얼굴 너비", "unit": "%", "center": 21, "span": 6,
-      "traits": { "kindness": 5, "mischief": -4, "jealousy": -8, "lazy": 3 },
-      "high": { "label": "넓은 편", "reading": "눈썹 사이가 시원하게 트였어요. 옛 책은 이 자리가 넓고 반듯해야 귀한 상이라고 봤습니다. 웬만한 일은 넘기는 넉넉한 도량으로 풀이해요.", "quote": "要豐闊平正，兩眉舒展", "volume": 4, "section": "相印堂" },
-      "mid": { "reading": "눈썹 사이가 표준에 가까워요. 넘길 일은 넘기고 따질 일은 따지는 균형형으로 풀이해요." },
-      "low": { "label": "좁은 편", "reading": "눈썹 머리가 가까이 모여 있어요. 옛 책은 이 상을 박하게 평했는데, 여기서는 한번 꽂히면 끝까지 파고드는 집중형으로 풀이해요.", "quote": "眉頭交者貧薄", "volume": 3, "section": "論眉" }
+      "key": "browGap",
+      "part": "눈썹",
+      "title": "인당(印堂) · 눈썹 사이",
+      "metric": "browGap",
+      "label": "눈썹 사이 / 얼굴 너비",
+      "unit": "%",
+      "center": 21,
+      "span": 6,
+      "traits": {
+        "kindness": 5,
+        "mischief": -4,
+        "jealousy": -8,
+        "lazy": 3
+      },
+      "high": {
+        "label": "넓은 편",
+        "reading": "눈썹 사이가 시원하게 트였어요. 옛 책은 이 자리가 넓고 반듯해야 귀한 상이라고 봤습니다. 웬만한 일은 넘기는 넉넉한 도량으로 풀이해요.",
+        "quote": "要豐闊平正，兩眉舒展",
+        "volume": 4,
+        "section": "相印堂"
+      },
+      "mid": {
+        "reading": "눈썹 사이가 표준에 가까워요. 넘길 일은 넘기고 따질 일은 따지는 균형형으로 풀이해요."
+      },
+      "low": {
+        "label": "좁은 편",
+        "reading": "눈썹 머리가 가까이 모여 있어요. 옛 책은 이 상을 박하게 평했는데, 여기서는 한번 꽂히면 끝까지 파고드는 집중형으로 풀이해요.",
+        "quote": "眉頭交者貧薄",
+        "volume": 3,
+        "section": "論眉"
+      },
+      "caution": {
+        "band": "low",
+        "name": "조급함",
+        "reading": "눈썹 사이가 좁아, 옛 책이 넉넉하지 못하다고 본 상이에요. 한 가지에 너무 매달리지 말고 숨 돌릴 틈을 두세요."
+      }
     },
     {
-      "key": "browLength", "part": "눈썹", "title": "눈썹 길이", "metric": "browLength",
-      "label": "눈썹 길이 / 눈 길이", "unit": "%", "center": 165, "span": 30,
-      "traits": { "kindness": 4, "loyalty": 9, "lies": -120, "innocence": 3 },
-      "high": { "label": "긴 편", "reading": "눈썹이 눈을 넉넉히 덮고 지나가요. 옛 책은 눈썹이 눈보다 길면 충직해서 녹을 받는다고 했습니다. 의리 하나는 확실한 상으로 풀이해요.", "quote": "眉長過目，忠直有祿", "volume": 3, "section": "論眉" },
-      "mid": { "reading": "눈썹 길이가 표준에 가까워요. 의리와 실속 사이에서 적당히 줄타기하는 상으로 풀이해요." },
-      "low": { "label": "짧은 편", "reading": "눈썹이 짧은 편이에요. 옛 책은 눈썹이 눈보다 짧으면 홀로 가는 성품이라고 했습니다. 남 눈치보다 내 길이 먼저인 독립형으로 풀이해요.", "quote": "眉短於目，心性孤獨", "volume": 3, "section": "論眉" }
+      "key": "browLength",
+      "part": "눈썹",
+      "title": "눈썹 길이",
+      "metric": "browLength",
+      "label": "눈썹 길이 / 눈 길이",
+      "unit": "%",
+      "center": 165,
+      "span": 30,
+      "traits": {
+        "kindness": 4,
+        "loyalty": 9,
+        "lies": -120,
+        "innocence": 3
+      },
+      "high": {
+        "label": "긴 편",
+        "reading": "눈썹이 눈을 넉넉히 덮고 지나가요. 옛 책은 눈썹이 눈보다 길면 충직해서 녹을 받는다고 했습니다. 의리 하나는 확실한 상으로 풀이해요.",
+        "quote": "眉長過目，忠直有祿",
+        "volume": 3,
+        "section": "論眉"
+      },
+      "mid": {
+        "reading": "눈썹 길이가 표준에 가까워요. 의리와 실속 사이에서 적당히 줄타기하는 상으로 풀이해요."
+      },
+      "low": {
+        "label": "짧은 편",
+        "reading": "눈썹이 짧은 편이에요. 옛 책은 눈썹이 눈보다 짧으면 홀로 가는 성품이라고 했습니다. 남 눈치보다 내 길이 먼저인 독립형으로 풀이해요.",
+        "quote": "眉短於目，心性孤獨",
+        "volume": 3,
+        "section": "論眉"
+      },
+      "caution": {
+        "band": "low",
+        "name": "혼자 끌어안기",
+        "reading": "눈썹이 짧아, 옛 책 기준으로는 홀로 가는 성품이에요. 힘들 때 혼자 버티지 말고 도움을 청하세요."
+      }
     },
     {
-      "key": "browTilt", "part": "눈썹", "title": "눈썹 기울기", "metric": "browTilt",
-      "label": "눈썹 기울기", "unit": "°", "center": -13, "span": 8,
-      "traits": { "mischief": 5, "stubborn": 8, "pride": 6, "swagger": 3, "lazy": -4 },
-      "high": { "label": "올라간 편", "reading": "눈썹 끝이 치켜 올라갔어요. 옛 책은 눈썹이 솟으면 기세가 굳세다고 했습니다. 한번 정하면 잘 굽히지 않는 상으로 풀이해요.", "quote": "昂者氣剛", "volume": 3, "section": "論眉" },
-      "mid": { "reading": "눈썹 기울기가 표준에 가까워요. 밀어붙일 때와 물러설 때를 가리는 상으로 풀이해요." },
-      "low": { "label": "내려간 편", "reading": "눈썹 끝이 눈 쪽으로 부드럽게 내려와요. 옛 책은 이런 눈썹을 순한 성품으로 봤습니다. 싸움보다 양보가 편한 상으로 풀이해요.", "quote": "尾垂眼者性懦", "volume": 3, "section": "論眉" }
+      "key": "browTilt",
+      "part": "눈썹",
+      "title": "눈썹 기울기",
+      "metric": "browTilt",
+      "label": "눈썹 기울기",
+      "unit": "°",
+      "center": -13,
+      "span": 8,
+      "traits": {
+        "mischief": 5,
+        "stubborn": 8,
+        "pride": 6,
+        "swagger": 3,
+        "lazy": -4
+      },
+      "high": {
+        "label": "올라간 편",
+        "reading": "눈썹 끝이 치켜 올라갔어요. 옛 책은 눈썹이 솟으면 기세가 굳세다고 했습니다. 한번 정하면 잘 굽히지 않는 상으로 풀이해요.",
+        "quote": "昂者氣剛",
+        "volume": 3,
+        "section": "論眉"
+      },
+      "mid": {
+        "reading": "눈썹 기울기가 표준에 가까워요. 밀어붙일 때와 물러설 때를 가리는 상으로 풀이해요."
+      },
+      "low": {
+        "label": "내려간 편",
+        "reading": "눈썹 끝이 눈 쪽으로 부드럽게 내려와요. 옛 책은 이런 눈썹을 순한 성품으로 봤습니다. 싸움보다 양보가 편한 상으로 풀이해요.",
+        "quote": "尾垂眼者性懦",
+        "volume": 3,
+        "section": "論眉"
+      },
+      "caution": {
+        "band": "high",
+        "name": "고집",
+        "reading": "눈썹이 치켜 올라, 옛 책 기준으로는 기세가 센 상이에요. 이기고도 사람을 잃지 않게 한 발 물러설 줄도 알아야 해요."
+      }
     },
     {
-      "key": "eyeLength", "part": "눈", "title": "눈 길이", "metric": "eyeLength",
-      "label": "눈 길이 / 얼굴 너비", "unit": "%", "center": 18.5, "span": 3,
-      "traits": { "wit": 8, "pride": 4, "humor": 3, "romance": 3, "jealousy": 3 },
-      "high": { "label": "긴 편", "reading": "눈이 가로로 길게 뻗었어요. 옛 책은 길고 깊으며 윤기 있는 눈을 크게 귀한 상으로 쳤습니다. 눈치와 머리 회전이 빠른 상으로 풀이해요.", "quote": "眼長而深，光潤者大貴", "volume": 3, "section": "相目論" },
-      "mid": { "reading": "눈 길이가 표준에 가까워요. 볼 건 다 보고 모른 척도 할 줄 아는 상으로 풀이해요." },
-      "low": { "label": "짧은 편", "reading": "눈이 짧고 또렷한 편이에요. 옛 책은 짧고 작은 눈을 박하게 평했는데, 여기서는 잔머리보다 정공법을 택하는 우직한 상으로 풀이해요.", "quote": "短小者愚賤", "volume": 3, "section": "相目論" }
+      "key": "eyeLength",
+      "part": "눈",
+      "title": "눈 길이",
+      "metric": "eyeLength",
+      "label": "눈 길이 / 얼굴 너비",
+      "unit": "%",
+      "center": 18.5,
+      "span": 3,
+      "traits": {
+        "wit": 8,
+        "pride": 4,
+        "humor": 3,
+        "romance": 3,
+        "jealousy": 3
+      },
+      "high": {
+        "label": "긴 편",
+        "reading": "눈이 가로로 길게 뻗었어요. 옛 책은 길고 깊으며 윤기 있는 눈을 크게 귀한 상으로 쳤습니다. 눈치와 머리 회전이 빠른 상으로 풀이해요.",
+        "quote": "眼長而深，光潤者大貴",
+        "volume": 3,
+        "section": "相目論"
+      },
+      "mid": {
+        "reading": "눈 길이가 표준에 가까워요. 볼 건 다 보고 모른 척도 할 줄 아는 상으로 풀이해요."
+      },
+      "low": {
+        "label": "짧은 편",
+        "reading": "눈이 짧고 또렷한 편이에요. 옛 책은 짧고 작은 눈을 박하게 평했는데, 여기서는 잔머리보다 정공법을 택하는 우직한 상으로 풀이해요.",
+        "quote": "短小者愚賤",
+        "volume": 3,
+        "section": "相目論"
+      }
     },
     {
-      "key": "eyeTilt", "part": "눈", "title": "눈꼬리", "metric": "eyeTilt",
-      "label": "눈꼬리 기울기", "unit": "°", "center": 1, "span": 6,
-      "traits": { "mischief": 4, "wit": 3, "stubborn": 3, "humor": 3, "lazy": -6, "playful": 6 },
-      "high": { "label": "올라간 편", "reading": "눈꼬리가 위로 솟았어요. 옛 책은 눈이 솟으면 성미가 급하다고 했습니다. 생각보다 몸이 먼저 나가는 행동파로 풀이해요.", "quote": "卓起者性急", "volume": 3, "section": "相目論" },
-      "mid": { "reading": "눈꼬리가 수평에 가까워요. 급할 때만 급해지는 상으로 풀이해요." },
-      "low": { "label": "내려간 편", "reading": "눈꼬리가 아래로 순하게 떨어져요. 해당 원문은 솟은 눈만 급하다고 했으니, 그 반대인 느긋한 상으로 풀이해요." }
+      "key": "eyeTilt",
+      "part": "눈",
+      "title": "눈꼬리",
+      "metric": "eyeTilt",
+      "label": "눈꼬리 기울기",
+      "unit": "°",
+      "center": 1,
+      "span": 6,
+      "traits": {
+        "mischief": 4,
+        "wit": 3,
+        "stubborn": 3,
+        "humor": 3,
+        "lazy": -6,
+        "playful": 6
+      },
+      "high": {
+        "label": "올라간 편",
+        "reading": "눈꼬리가 위로 솟았어요. 옛 책은 눈이 솟으면 성미가 급하다고 했습니다. 생각보다 몸이 먼저 나가는 행동파로 풀이해요.",
+        "quote": "卓起者性急",
+        "volume": 3,
+        "section": "相目論"
+      },
+      "mid": {
+        "reading": "눈꼬리가 수평에 가까워요. 급할 때만 급해지는 상으로 풀이해요."
+      },
+      "low": {
+        "label": "내려간 편",
+        "reading": "눈꼬리가 아래로 순하게 떨어져요. 해당 원문은 솟은 눈만 급하다고 했으니, 그 반대인 느긋한 상으로 풀이해요."
+      },
+      "caution": {
+        "band": "high",
+        "name": "성급함",
+        "reading": "눈꼬리가 솟아, 옛 책 기준으로는 성미가 급한 상이에요. 중요한 결정은 하룻밤 자고 하는 게 좋아요."
+      }
     },
     {
-      "key": "noseLength", "part": "코", "title": "코 길이", "metric": "noseLength",
-      "label": "코 길이 / 얼굴 높이", "unit": "%", "center": 31, "span": 5,
-      "traits": { "stubborn": 4, "pride": 5, "lazy": -3 },
-      "high": { "label": "긴 편", "reading": "콧대가 길게 뻗었어요. 옛 책은 코가 길면 백 년을 넘겨 산다고 했습니다. 오래 버티는 끈기와 자존심의 상으로 풀이해요.", "quote": "鼻長有壽百年過", "volume": 4, "section": "相鼻" },
-      "mid": { "reading": "코 길이가 표준에 가까워요. 버틸 때와 접을 때를 아는 상으로 풀이해요." },
-      "low": { "label": "짧은 편", "reading": "코가 짧고 아담해요. 옛 책은 코가 짧으면 큰 영화는 장담 못 한다고 했습니다. 거창한 것보다 지금 편한 게 좋은 실속형으로 풀이해요.", "quote": "若還短促，未敢許榮昌", "volume": 2, "section": "四曰鼻為審辨官" }
+      "key": "noseLength",
+      "part": "코",
+      "title": "코 길이",
+      "metric": "noseLength",
+      "label": "코 길이 / 얼굴 높이",
+      "unit": "%",
+      "center": 31,
+      "span": 5,
+      "traits": {
+        "stubborn": 4,
+        "pride": 5,
+        "lazy": -3
+      },
+      "high": {
+        "label": "긴 편",
+        "reading": "콧대가 길게 뻗었어요. 옛 책은 코가 길면 백 년을 넘겨 산다고 했습니다. 오래 버티는 끈기와 자존심의 상으로 풀이해요.",
+        "quote": "鼻長有壽百年過",
+        "volume": 4,
+        "section": "相鼻"
+      },
+      "mid": {
+        "reading": "코 길이가 표준에 가까워요. 버틸 때와 접을 때를 아는 상으로 풀이해요."
+      },
+      "low": {
+        "label": "짧은 편",
+        "reading": "코가 짧고 아담해요. 옛 책은 코가 짧으면 큰 영화는 장담 못 한다고 했습니다. 거창한 것보다 지금 편한 게 좋은 실속형으로 풀이해요.",
+        "quote": "若還短促，未敢許榮昌",
+        "volume": 2,
+        "section": "四曰鼻為審辨官"
+      }
     },
     {
-      "key": "noseWidth", "part": "코", "title": "준두(準頭) · 코끝과 콧방울", "metric": "noseWidth",
-      "label": "콧방울 너비 / 얼굴 너비", "unit": "%", "center": 21.5, "span": 5,
-      "traits": { "kindness": 8, "mischief": -6, "wit": -7, "lies": -80, "greed": 5, "innocence": 3 },
-      "high": { "label": "넉넉한 편", "reading": "코끝이 둥글고 넉넉해요. 옛 책은 코끝이 풍성하면 남에게 해를 끼치지 않는다고 했습니다. 인심 좋고 재물복도 따르는 상으로 풀이해요.", "quote": "準頭豐大與人無害", "volume": 4, "section": "相鼻" },
-      "mid": { "reading": "코끝 너비가 표준에 가까워요. 베풀 땐 베풀고 챙길 땐 챙기는 상으로 풀이해요." },
-      "low": { "label": "좁은 편", "reading": "코끝이 가늘고 날렵해요. 옛 책은 코끝이 뾰족하고 가늘면 꾀를 잘 낸다고 했습니다. 잔머리 굴리는 속도가 남다른 상으로 풀이해요.", "quote": "準頭尖細好為奸計", "volume": 4, "section": "相鼻" }
+      "key": "noseWidth",
+      "part": "코",
+      "title": "준두(準頭) · 코끝과 콧방울",
+      "metric": "noseWidth",
+      "label": "콧방울 너비 / 얼굴 너비",
+      "unit": "%",
+      "center": 21.5,
+      "span": 5,
+      "traits": {
+        "kindness": 8,
+        "mischief": -6,
+        "wit": -7,
+        "lies": -80,
+        "greed": 5,
+        "innocence": 3
+      },
+      "high": {
+        "label": "넉넉한 편",
+        "reading": "코끝이 둥글고 넉넉해요. 옛 책은 코끝이 풍성하면 남에게 해를 끼치지 않는다고 했습니다. 인심 좋고 재물복도 따르는 상으로 풀이해요.",
+        "quote": "準頭豐大與人無害",
+        "volume": 4,
+        "section": "相鼻"
+      },
+      "mid": {
+        "reading": "코끝 너비가 표준에 가까워요. 베풀 땐 베풀고 챙길 땐 챙기는 상으로 풀이해요."
+      },
+      "low": {
+        "label": "좁은 편",
+        "reading": "코끝이 가늘고 날렵해요. 옛 책은 코끝이 뾰족하고 가늘면 꾀를 잘 낸다고 했습니다. 잔머리 굴리는 속도가 남다른 상으로 풀이해요.",
+        "quote": "準頭尖細好為奸計",
+        "volume": 4,
+        "section": "相鼻"
+      },
+      "caution": {
+        "band": "low",
+        "name": "잔꾀",
+        "reading": "코끝이 가늘어, 옛 책 기준으로는 꾀가 앞서는 상이에요. 지름길을 찾다가 손해 보지 않게 조심하세요."
+      }
     },
     {
-      "key": "mouthWidth", "part": "입", "title": "입 크기", "metric": "mouthWidth",
-      "label": "입 너비 / 얼굴 너비", "unit": "%", "center": 36, "span": 7,
-      "traits": { "mischief": 3, "lies": 100, "swagger": 8, "humor": 5, "greed": 6, "innocence": -3 },
-      "high": { "label": "큰 편", "reading": "입이 시원하게 커요. 옛 책은 입이 넓고 풍성하면 녹이 만 종이라고 했습니다. 배포가 크고 말도 많은 상으로 풀이해요.", "quote": "口闊而豐，食祿萬鍾", "volume": 4, "section": "相口" },
-      "mid": { "reading": "입 크기가 표준에 가까워요. 할 말은 하되 허풍은 적당한 상으로 풀이해요." },
-      "low": { "label": "작은 편", "reading": "입이 작고 야무져요. 옛 책은 작고 짧은 입을 박하게 평했는데, 여기서는 말수가 적고 허풍이 없는 상으로 풀이해요.", "quote": "口小而短者貧", "volume": 4, "section": "相口" }
+      "key": "mouthWidth",
+      "part": "입",
+      "title": "입 크기",
+      "metric": "mouthWidth",
+      "label": "입 너비 / 얼굴 너비",
+      "unit": "%",
+      "center": 36,
+      "span": 7,
+      "traits": {
+        "mischief": 3,
+        "lies": 100,
+        "swagger": 8,
+        "humor": 5,
+        "greed": 6,
+        "innocence": -3
+      },
+      "high": {
+        "label": "큰 편",
+        "reading": "입이 시원하게 커요. 옛 책은 입이 넓고 풍성하면 녹이 만 종이라고 했습니다. 배포가 크고 말도 많은 상으로 풀이해요.",
+        "quote": "口闊而豐，食祿萬鍾",
+        "volume": 4,
+        "section": "相口"
+      },
+      "mid": {
+        "reading": "입 크기가 표준에 가까워요. 할 말은 하되 허풍은 적당한 상으로 풀이해요."
+      },
+      "low": {
+        "label": "작은 편",
+        "reading": "입이 작고 야무져요. 옛 책은 작고 짧은 입을 박하게 평했는데, 여기서는 말수가 적고 허풍이 없는 상으로 풀이해요.",
+        "quote": "口小而短者貧",
+        "volume": 4,
+        "section": "相口"
+      }
     },
     {
-      "key": "lipThickness", "part": "입", "title": "입술 두께", "metric": "lipThickness",
-      "label": "입술 두께 / 입 너비", "unit": "%", "center": 28.5, "span": 10,
-      "traits": { "kindness": 5, "lies": -220, "loyalty": 6, "romance": 7 },
-      "high": { "label": "도톰한 편", "reading": "위아래 입술이 모두 도톰해요. 옛 책은 두 입술이 다 두터우면 믿음직한 사람이라고 했습니다. 거짓말이 서툰 상으로 풀이해요.", "quote": "上下俱厚者，忠信之人", "volume": 4, "section": "論脣" },
-      "mid": { "reading": "입술 두께가 표준에 가까워요. 필요한 만큼만 둘러대는 상으로 풀이해요." },
-      "low": { "label": "얇은 편", "reading": "위아래 입술이 모두 얇아요. 옛 책은 두 입술이 다 얇으면 빈말을 한다고 했습니다. 거짓말 횟수가 올라가는 가장 큰 이유예요.", "quote": "上下俱薄者，妄語", "volume": 4, "section": "論脣" }
+      "key": "lipThickness",
+      "part": "입",
+      "title": "입술 두께",
+      "metric": "lipThickness",
+      "label": "입술 두께 / 입 너비",
+      "unit": "%",
+      "center": 28.5,
+      "span": 10,
+      "traits": {
+        "kindness": 5,
+        "lies": -220,
+        "loyalty": 6,
+        "romance": 7
+      },
+      "high": {
+        "label": "도톰한 편",
+        "reading": "위아래 입술이 모두 도톰해요. 옛 책은 두 입술이 다 두터우면 믿음직한 사람이라고 했습니다. 거짓말이 서툰 상으로 풀이해요.",
+        "quote": "上下俱厚者，忠信之人",
+        "volume": 4,
+        "section": "論脣"
+      },
+      "mid": {
+        "reading": "입술 두께가 표준에 가까워요. 필요한 만큼만 둘러대는 상으로 풀이해요."
+      },
+      "low": {
+        "label": "얇은 편",
+        "reading": "위아래 입술이 모두 얇아요. 옛 책은 두 입술이 다 얇으면 빈말을 한다고 했습니다. 거짓말 횟수가 올라가는 가장 큰 이유예요.",
+        "quote": "上下俱薄者，妄語",
+        "volume": 4,
+        "section": "論脣"
+      },
+      "caution": {
+        "band": "low",
+        "name": "빈말",
+        "reading": "입술이 얇은 편이라, 옛 책 기준으로는 빈말이 나오기 쉬운 상이에요. 약속은 적게, 말은 한 번 더 생각하고 하는 게 좋아요."
+      }
     },
     {
-      "key": "mouthTilt", "part": "입", "title": "입꼬리", "metric": "mouthTilt",
-      "label": "입꼬리 기울기", "unit": "°", "center": 0, "span": 7,
-      "traits": { "kindness": 3, "jealousy": -5, "humor": 8, "playful": 5 },
-      "high": { "label": "올라간 편", "reading": "입꼬리가 활처럼 올라갔어요. 옛 책은 입이 각궁 같으면 벼슬과 녹이 따른다고 했습니다. 웃음이 많고 분위기를 띄우는 상으로 풀이해요.", "quote": "形如角弓者主官祿", "volume": 4, "section": "相口" },
-      "mid": { "reading": "입꼬리가 수평에 가까워요. 웃길 땐 웃기고 진지할 땐 진지한 상으로 풀이해요." },
-      "low": { "label": "내려간 편", "reading": "입꼬리가 아래로 향했어요. 옛 책은 양 끝이 처진 입을 좋게 보지 않았습니다. 이 사진에서는 쉽게 웃어 주지 않는 시크한 상으로 풀이해요.", "quote": "水星偏陷兩頭垂", "volume": 2, "section": "五曰口為出納官" }
+      "key": "mouthTilt",
+      "part": "입",
+      "title": "입꼬리",
+      "metric": "mouthTilt",
+      "label": "입꼬리 기울기",
+      "unit": "°",
+      "center": 0,
+      "span": 7,
+      "traits": {
+        "kindness": 3,
+        "jealousy": -5,
+        "humor": 8,
+        "playful": 5
+      },
+      "high": {
+        "label": "올라간 편",
+        "reading": "입꼬리가 활처럼 올라갔어요. 옛 책은 입이 각궁 같으면 벼슬과 녹이 따른다고 했습니다. 웃음이 많고 분위기를 띄우는 상으로 풀이해요.",
+        "quote": "形如角弓者主官祿",
+        "volume": 4,
+        "section": "相口"
+      },
+      "mid": {
+        "reading": "입꼬리가 수평에 가까워요. 웃길 땐 웃기고 진지할 땐 진지한 상으로 풀이해요."
+      },
+      "low": {
+        "label": "내려간 편",
+        "reading": "입꼬리가 아래로 향했어요. 옛 책은 양 끝이 처진 입을 좋게 보지 않았습니다. 이 사진에서는 쉽게 웃어 주지 않는 시크한 상으로 풀이해요.",
+        "quote": "水星偏陷兩頭垂",
+        "volume": 2,
+        "section": "五曰口為出納官"
+      },
+      "caution": {
+        "band": "low",
+        "name": "굳은 표정",
+        "reading": "입꼬리가 내려가, 옛 책이 좋게 보지 않은 모양이에요. 가만히 있어도 화난 줄 아니, 일부러라도 웃어 주세요."
+      }
     },
     {
-      "key": "philtrum", "part": "입", "title": "인중(人中)", "metric": "philtrum",
-      "label": "인중 길이 / 얼굴 높이", "unit": "%", "center": 7.6, "span": 2,
-      "traits": { "loyalty": 5, "lazy": 5, "stubborn": 3, "playful": -4 },
-      "high": { "label": "긴 편", "reading": "인중이 길게 뻗었어요. 옛 책은 인중이 반듯하고 길면 늙도록 길하다고 했습니다. 서두르지 않고 길게 가는 상으로 풀이해요.", "quote": "人中平長，至老吉昌", "volume": 4, "section": "相人中篇" },
-      "mid": { "reading": "인중 길이가 표준에 가까워요. 급할 것도 느릴 것도 없는 상으로 풀이해요." },
-      "low": { "label": "짧은 편", "reading": "인중이 짧은 편이에요. 옛 책은 인중이 길어야 좋고 오므라들면 좋지 않다고 했습니다. 기다리기보다 바로 해치우는 성미로 풀이해요.", "quote": "是以欲長而不欲縮", "volume": 4, "section": "人中論" }
+      "key": "philtrum",
+      "part": "입",
+      "title": "인중(人中)",
+      "metric": "philtrum",
+      "label": "인중 길이 / 얼굴 높이",
+      "unit": "%",
+      "center": 7.6,
+      "span": 2,
+      "traits": {
+        "loyalty": 5,
+        "lazy": 5,
+        "stubborn": 3,
+        "playful": -4
+      },
+      "high": {
+        "label": "긴 편",
+        "reading": "인중이 길게 뻗었어요. 옛 책은 인중이 반듯하고 길면 늙도록 길하다고 했습니다. 서두르지 않고 길게 가는 상으로 풀이해요.",
+        "quote": "人中平長，至老吉昌",
+        "volume": 4,
+        "section": "相人中篇"
+      },
+      "mid": {
+        "reading": "인중 길이가 표준에 가까워요. 급할 것도 느릴 것도 없는 상으로 풀이해요."
+      },
+      "low": {
+        "label": "짧은 편",
+        "reading": "인중이 짧은 편이에요. 옛 책은 인중이 길어야 좋고 오므라들면 좋지 않다고 했습니다. 기다리기보다 바로 해치우는 성미로 풀이해요.",
+        "quote": "是以欲長而不欲縮",
+        "volume": 4,
+        "section": "人中論"
+      },
+      "caution": {
+        "band": "low",
+        "name": "뒷심 부족",
+        "reading": "인중이 짧아, 옛 책 기준으로는 오므라든 상이에요. 시작한 일을 끝까지 끌고 가는 뒷심을 챙기세요."
+      }
     },
     {
-      "key": "upperFace", "part": "이마", "title": "상정(上停) · 이마 높이", "metric": "upperFace",
-      "label": "이마 높이 / 얼굴 높이", "unit": "%", "center": 18.7, "span": 4,
-      "traits": { "wit": 5, "pride": 6, "swagger": 4 },
-      "high": { "label": "높은 편", "reading": "이마 구역이 높고 시원해요. 옛 책은 상정이 길고 넓으면 귀하다고 했습니다. 머리 쓰는 일에 자부심이 있는 상으로 풀이해요.", "quote": "上停長而豐隆，方而廣闊者，主貴也", "volume": 1, "section": "面三停" },
-      "mid": { "reading": "이마 높이가 표준에 가까워요. 머리와 몸을 골고루 쓰는 상으로 풀이해요." },
-      "low": { "label": "낮은 편", "reading": "이마 구역이 낮은 편이에요. 원문은 높은 이마를 귀하게 봤으니, 그 반대인 이론보다 실전에 강한 상으로 풀이해요." }
+      "key": "upperFace",
+      "part": "이마",
+      "title": "상정(上停) · 이마 높이",
+      "metric": "upperFace",
+      "label": "이마 높이 / 얼굴 높이",
+      "unit": "%",
+      "center": 18.7,
+      "span": 4,
+      "traits": {
+        "wit": 5,
+        "pride": 6,
+        "swagger": 4
+      },
+      "high": {
+        "label": "높은 편",
+        "reading": "이마 구역이 높고 시원해요. 옛 책은 상정이 길고 넓으면 귀하다고 했습니다. 머리 쓰는 일에 자부심이 있는 상으로 풀이해요.",
+        "quote": "上停長而豐隆，方而廣闊者，主貴也",
+        "volume": 1,
+        "section": "面三停"
+      },
+      "mid": {
+        "reading": "이마 높이가 표준에 가까워요. 머리와 몸을 골고루 쓰는 상으로 풀이해요."
+      },
+      "low": {
+        "label": "낮은 편",
+        "reading": "이마 구역이 낮은 편이에요. 원문은 높은 이마를 귀하게 봤으니, 그 반대인 이론보다 실전에 강한 상으로 풀이해요."
+      }
     },
     {
-      "key": "foreheadWidth", "part": "이마", "title": "천정(天庭) · 이마 너비", "metric": "foreheadWidth",
-      "label": "이마 너비 / 얼굴 너비", "unit": "%", "center": 73, "span": 8,
-      "traits": { "wit": 5, "innocence": 4 },
-      "high": { "label": "넓은 편", "reading": "이마가 넓게 열려 있어요. 옛 책은 이마를 하늘에 빗대어 넓고 둥글어야 귀하다고 했습니다. 생각의 폭이 넓은 상으로 풀이해요.", "quote": "額為天，欲闊而圓，名曰有天者貴", "volume": 2, "section": "三才三停論" },
-      "mid": { "reading": "이마 너비가 표준에 가까워요. 엉뚱함과 현실감이 반반인 상으로 풀이해요." },
-      "low": { "label": "좁은 편", "reading": "이마가 위로 갈수록 좁아져요. 옛 책은 위가 뾰족하면 이롭지 않다고 했습니다. 넓게 벌이기보다 한 우물을 파는 상으로 풀이해요.", "quote": "上尖者不利", "volume": 3, "section": "相面" }
+      "key": "foreheadWidth",
+      "part": "이마",
+      "title": "천정(天庭) · 이마 너비",
+      "metric": "foreheadWidth",
+      "label": "이마 너비 / 얼굴 너비",
+      "unit": "%",
+      "center": 73,
+      "span": 8,
+      "traits": {
+        "wit": 5,
+        "innocence": 4
+      },
+      "high": {
+        "label": "넓은 편",
+        "reading": "이마가 넓게 열려 있어요. 옛 책은 이마를 하늘에 빗대어 넓고 둥글어야 귀하다고 했습니다. 생각의 폭이 넓은 상으로 풀이해요.",
+        "quote": "額為天，欲闊而圓，名曰有天者貴",
+        "volume": 2,
+        "section": "三才三停論"
+      },
+      "mid": {
+        "reading": "이마 너비가 표준에 가까워요. 엉뚱함과 현실감이 반반인 상으로 풀이해요."
+      },
+      "low": {
+        "label": "좁은 편",
+        "reading": "이마가 위로 갈수록 좁아져요. 옛 책은 위가 뾰족하면 이롭지 않다고 했습니다. 넓게 벌이기보다 한 우물을 파는 상으로 풀이해요.",
+        "quote": "上尖者不利",
+        "volume": 3,
+        "section": "相面"
+      }
     },
     {
-      "key": "midFace", "part": "삼정", "title": "중정(中停) · 눈썹에서 코끝", "metric": "midFace",
-      "label": "가운데 높이 / 얼굴 높이", "unit": "%", "center": 40.4, "span": 4,
-      "traits": { "kindness": 7, "mischief": -6, "lies": -80, "loyalty": 4 },
-      "high": { "label": "긴 편", "reading": "얼굴 가운데 구역이 길고 곧아요. 옛 책은 중정이 곧고 높으면 오래 산다고 했습니다. 속이 단단하고 듬직한 상으로 풀이해요.", "quote": "中停隆而直，峻而靜者，主壽也", "volume": 1, "section": "面三停" },
-      "mid": { "reading": "가운데 구역이 표준에 가까워요. 착할 땐 착하고 약을 땐 약은 상으로 풀이해요." },
-      "low": { "label": "짧은 편", "reading": "얼굴 가운데 구역이 짧아요. 옛 책은 중정이 짧으면 어질지도 의롭지도 않다고 꽤 심하게 말했습니다. 인성 점수가 깎이는 대목이에요.", "quote": "中停短促褊塌者，主不仁不義，智識短少", "volume": 1, "section": "面三停" }
+      "key": "midFace",
+      "part": "삼정",
+      "title": "중정(中停) · 눈썹에서 코끝",
+      "metric": "midFace",
+      "label": "가운데 높이 / 얼굴 높이",
+      "unit": "%",
+      "center": 40.4,
+      "span": 4,
+      "traits": {
+        "kindness": 7,
+        "mischief": -6,
+        "lies": -80,
+        "loyalty": 4
+      },
+      "high": {
+        "label": "긴 편",
+        "reading": "얼굴 가운데 구역이 길고 곧아요. 옛 책은 중정이 곧고 높으면 오래 산다고 했습니다. 속이 단단하고 듬직한 상으로 풀이해요.",
+        "quote": "中停隆而直，峻而靜者，主壽也",
+        "volume": 1,
+        "section": "面三停"
+      },
+      "mid": {
+        "reading": "가운데 구역이 표준에 가까워요. 착할 땐 착하고 약을 땐 약은 상으로 풀이해요."
+      },
+      "low": {
+        "label": "짧은 편",
+        "reading": "얼굴 가운데 구역이 짧아요. 옛 책은 중정이 짧으면 어질지도 의롭지도 않다고 꽤 심하게 말했습니다. 인성 점수가 깎이는 대목이에요.",
+        "quote": "中停短促褊塌者，主不仁不義，智識短少",
+        "volume": 1,
+        "section": "面三停"
+      },
+      "caution": {
+        "band": "low",
+        "name": "가벼운 약속",
+        "reading": "얼굴 가운데 구역이 짧아, 옛 책이 의리를 걱정한 상이에요. 작은 약속부터 지켜서 믿음을 쌓는 게 좋아요."
+      }
     },
     {
-      "key": "jawWidth", "part": "턱", "title": "지각(地閣) · 턱 너비", "metric": "jawWidth",
-      "label": "턱 너비 / 얼굴 너비", "unit": "%", "center": 80, "span": 8,
-      "traits": { "stubborn": 6, "loyalty": 4, "greed": 6, "romance": -3 },
-      "high": { "label": "넓은 편", "reading": "턱이 넓고 든든해요. 옛 책은 턱을 땅에 빗대어 모나고 넓어야 부유하다고 했습니다. 내 것은 확실히 챙기는 뚝심의 상으로 풀이해요.", "quote": "頦為地，欲方而闊，名曰有地者富", "volume": 2, "section": "三才三停論" },
-      "mid": { "reading": "턱 너비가 표준에 가까워요. 챙길 건 챙기고 놓을 건 놓는 상으로 풀이해요." },
-      "low": { "label": "갸름한 편", "reading": "턱이 갸름하게 모여요. 옛 책은 턱뼈가 넓으면 부유하고 뾰족하면 궁하다고 했습니다. 재물보다 낭만을 좇는 상으로 풀이해요.", "quote": "頷骨闊者富，尖者窮", "volume": 3, "section": "相面" }
+      "key": "jawWidth",
+      "part": "턱",
+      "title": "지각(地閣) · 턱 너비",
+      "metric": "jawWidth",
+      "label": "턱 너비 / 얼굴 너비",
+      "unit": "%",
+      "center": 80,
+      "span": 8,
+      "traits": {
+        "stubborn": 6,
+        "loyalty": 4,
+        "greed": 6,
+        "romance": -3
+      },
+      "high": {
+        "label": "넓은 편",
+        "reading": "턱이 넓고 든든해요. 옛 책은 턱을 땅에 빗대어 모나고 넓어야 부유하다고 했습니다. 내 것은 확실히 챙기는 뚝심의 상으로 풀이해요.",
+        "quote": "頦為地，欲方而闊，名曰有地者富",
+        "volume": 2,
+        "section": "三才三停論"
+      },
+      "mid": {
+        "reading": "턱 너비가 표준에 가까워요. 챙길 건 챙기고 놓을 건 놓는 상으로 풀이해요."
+      },
+      "low": {
+        "label": "갸름한 편",
+        "reading": "턱이 갸름하게 모여요. 옛 책은 턱뼈가 넓으면 부유하고 뾰족하면 궁하다고 했습니다. 재물보다 낭만을 좇는 상으로 풀이해요.",
+        "quote": "頷骨闊者富，尖者窮",
+        "volume": 3,
+        "section": "相面"
+      },
+      "caution": {
+        "band": "low",
+        "name": "씀씀이",
+        "reading": "턱이 갸름해, 옛 책 기준으로는 재물이 머물 자리가 좁은 상이에요. 번 만큼 새지 않게 씀씀이를 살피세요."
+      }
     },
     {
-      "key": "cheekWidth", "part": "광대", "title": "관골(顴骨) · 광대", "metric": "cheekWidth",
-      "label": "광대 너비 / 얼굴 높이", "unit": "%", "center": 77, "span": 8,
-      "traits": { "stubborn": 5, "swagger": 5, "jealousy": 4, "pride": 7 },
-      "high": { "label": "넓은 편", "reading": "광대가 옆으로 당당하게 자리 잡았어요. 옛 책은 솟은 광대뼈가 권세를 주관한다고 했습니다. 지고는 못 사는 승부욕의 상으로 풀이해요.", "quote": "面上有骨卓起，名為顴骨，主權勢", "volume": 1, "section": "相骨" },
-      "mid": { "reading": "광대 너비가 표준에 가까워요. 나설 때와 빠질 때를 아는 상으로 풀이해요." },
-      "low": { "label": "좁은 편", "reading": "광대가 도드라지지 않아요. 옛 책은 뼈가 살에 묻히면 저울대를 쥐지 못한다고 했습니다. 권력 다툼보다 평화가 좋은 상으로 풀이해요.", "quote": "若肉大骨藏，則無權衡", "volume": 1, "section": "論骨肉" }
+      "key": "cheekWidth",
+      "part": "광대",
+      "title": "관골(顴骨) · 광대",
+      "metric": "cheekWidth",
+      "label": "광대 너비 / 얼굴 높이",
+      "unit": "%",
+      "center": 77,
+      "span": 8,
+      "traits": {
+        "stubborn": 5,
+        "swagger": 5,
+        "jealousy": 4,
+        "pride": 7
+      },
+      "high": {
+        "label": "넓은 편",
+        "reading": "광대가 옆으로 당당하게 자리 잡았어요. 옛 책은 솟은 광대뼈가 권세를 주관한다고 했습니다. 지고는 못 사는 승부욕의 상으로 풀이해요.",
+        "quote": "面上有骨卓起，名為顴骨，主權勢",
+        "volume": 1,
+        "section": "相骨"
+      },
+      "mid": {
+        "reading": "광대 너비가 표준에 가까워요. 나설 때와 빠질 때를 아는 상으로 풀이해요."
+      },
+      "low": {
+        "label": "좁은 편",
+        "reading": "광대가 도드라지지 않아요. 옛 책은 뼈가 살에 묻히면 저울대를 쥐지 못한다고 했습니다. 권력 다툼보다 평화가 좋은 상으로 풀이해요.",
+        "quote": "若肉大骨藏，則無權衡",
+        "volume": 1,
+        "section": "論骨肉"
+      },
+      "caution": {
+        "band": "low",
+        "name": "우유부단",
+        "reading": "광대가 도드라지지 않아, 옛 책 기준으로는 저울대를 쥐기 어려운 상이에요. 결정할 때는 미루지 말고 정하세요."
+      }
     },
     {
-      "key": "thirdsBalance", "part": "삼정", "title": "삼정(三停)의 균형", "metric": "thirdsBalance",
-      "label": "상·중·하 비율", "unit": "", "sections": ["upperFace", "midFace", "lowerFace"], "center": 0, "span": 1,
-      "sectionScales": { "upperFace": [18.7, 4], "midFace": [40.4, 4], "lowerFace": [40.9, 4] },
-      "traits": { "kindness": 5, "mischief": -4, "jealousy": -3, "innocence": 6 },
-      "high": { "label": "고른 편", "reading": "위·가운데·아래 세 구역이 표준 비율에 가깝게 고르네요. 옛 책은 삼정이 고르면 부귀와 영화가 따른다고 했습니다. 모난 데 없는 원만한 상으로 풀이해요.", "quote": "三停平等，富貴榮顯", "volume": 2, "section": "三才三停論" },
-      "mid": { "reading": "세 구역이 대체로 고른 편이에요. 큰 치우침 없이 무난한 상으로 풀이해요." },
-      "low": { "label": "치우친 편", "reading": "세 구역 가운데 한쪽이 유난히 길거나 짧아요. 옛 책은 셋이 고루 맞아야 으뜸가는 상이라고 했습니다. 평범하기보다 개성이 뚜렷한 상으로 풀이해요.", "quote": "三停皆稱，乃為上相之人矣", "volume": 1, "section": "面三停" }
+      "key": "thirdsBalance",
+      "part": "삼정",
+      "title": "삼정(三停)의 균형",
+      "metric": "thirdsBalance",
+      "label": "상·중·하 비율",
+      "unit": "",
+      "sections": [
+        "upperFace",
+        "midFace",
+        "lowerFace"
+      ],
+      "center": 0,
+      "span": 1,
+      "sectionScales": {
+        "upperFace": [
+          18.7,
+          4
+        ],
+        "midFace": [
+          40.4,
+          4
+        ],
+        "lowerFace": [
+          40.9,
+          4
+        ]
+      },
+      "traits": {
+        "kindness": 5,
+        "mischief": -4,
+        "jealousy": -3,
+        "innocence": 6
+      },
+      "high": {
+        "label": "고른 편",
+        "reading": "위·가운데·아래 세 구역이 표준 비율에 가깝게 고르네요. 옛 책은 삼정이 고르면 부귀와 영화가 따른다고 했습니다. 모난 데 없는 원만한 상으로 풀이해요.",
+        "quote": "三停平等，富貴榮顯",
+        "volume": 2,
+        "section": "三才三停論"
+      },
+      "mid": {
+        "reading": "세 구역이 대체로 고른 편이에요. 큰 치우침 없이 무난한 상으로 풀이해요."
+      },
+      "low": {
+        "label": "치우친 편",
+        "reading": "세 구역 가운데 한쪽이 유난히 길거나 짧아요. 옛 책은 셋이 고루 맞아야 으뜸가는 상이라고 했습니다. 평범하기보다 개성이 뚜렷한 상으로 풀이해요.",
+        "quote": "三停皆稱，乃為上相之人矣",
+        "volume": 1,
+        "section": "面三停"
+      },
+      "caution": {
+        "band": "low",
+        "name": "쏠림",
+        "reading": "얼굴의 세 구역이 한쪽으로 치우쳐 있어요. 옛 책은 고른 것을 으뜸으로 쳤으니, 한 가지에만 쏠리지 않게 균형을 챙기세요."
+      }
     },
     {
-      "key": "symmetry", "part": "전체", "title": "오악(五嶽)의 조응 · 좌우 균형", "metric": "symmetry", "optional": true,
-      "label": "좌우 균형 점수", "unit": "점", "center": 95, "span": 5,
-      "traits": { "innocence": 5, "romance": 6, "playful": -3 },
-      "high": { "label": "고른 편", "reading": "좌우가 고르게 마주 보고 있어요. 옛 책은 얼굴의 다섯 봉우리가 서로 마주 응해야 한다고 했습니다. 겉과 속이 같은 반듯한 상으로 풀이해요.", "quote": "五嶽須要相朝", "volume": 2, "section": "五嶽" },
-      "mid": { "reading": "좌우 균형이 표준에 가까워요. 반듯함과 장난기가 섞인 상으로 풀이해요." },
-      "low": { "label": "차이 나는 편", "reading": "이 사진에서는 좌우가 조금 달라요. 옛 책은 한쪽 광대가 높고 한쪽이 낮은 것을 형(形)이 모자란다고 했습니다. 고개 각도 탓일 수 있으니 장난기 많은 상 정도로 풀이해요.", "quote": "一顴高，一顴低", "volume": 1, "section": "論形不足" }
+      "key": "symmetry",
+      "part": "전체",
+      "title": "오악(五嶽)의 조응 · 좌우 균형",
+      "metric": "symmetry",
+      "optional": true,
+      "label": "좌우 균형 점수",
+      "unit": "점",
+      "center": 95,
+      "span": 5,
+      "traits": {
+        "innocence": 5,
+        "romance": 6,
+        "playful": -3
+      },
+      "high": {
+        "label": "고른 편",
+        "reading": "좌우가 고르게 마주 보고 있어요. 옛 책은 얼굴의 다섯 봉우리가 서로 마주 응해야 한다고 했습니다. 겉과 속이 같은 반듯한 상으로 풀이해요.",
+        "quote": "五嶽須要相朝",
+        "volume": 2,
+        "section": "五嶽"
+      },
+      "mid": {
+        "reading": "좌우 균형이 표준에 가까워요. 반듯함과 장난기가 섞인 상으로 풀이해요."
+      },
+      "low": {
+        "label": "차이 나는 편",
+        "reading": "이 사진에서는 좌우가 조금 달라요. 옛 책은 한쪽 광대가 높고 한쪽이 낮은 것을 형(形)이 모자란다고 했습니다. 고개 각도 탓일 수 있으니 장난기 많은 상 정도로 풀이해요.",
+        "quote": "一顴高，一顴低",
+        "volume": 1,
+        "section": "論形不足"
+      }
     }
   ],
+  "fortunes": {
+    "minimum": 0.2,
+    "items": [
+      {
+        "key": "wealth",
+        "name": "재물운",
+        "emoji": "💰",
+        "title": "재물이 따르는 상",
+        "rules": [
+          "noseWidth",
+          "mouthWidth",
+          "jawWidth"
+        ],
+        "reading": "코끝과 입, 턱은 옛 책이 먹고 입을 것의 넉넉함을 본 자리예요. 이 자리가 좋게 나와, 들어온 돈이 잘 새지 않는 상으로 풀이해요."
+      },
+      {
+        "key": "career",
+        "name": "출세운",
+        "emoji": "🎓",
+        "title": "이름을 날릴 상",
+        "rules": [
+          "upperFace",
+          "foreheadWidth",
+          "eyeLength",
+          "browGap",
+          "mouthTilt"
+        ],
+        "reading": "이마와 눈, 눈썹 사이는 옛 책이 귀하게 되고 벼슬이 따르는지를 본 자리예요. 이 자리가 좋게 나와, 어디서든 이름이 알려지는 상으로 풀이해요."
+      },
+      {
+        "key": "power",
+        "name": "권세운",
+        "emoji": "🦁",
+        "title": "사람 위에 설 상",
+        "rules": [
+          "cheekWidth",
+          "browTilt"
+        ],
+        "reading": "광대와 눈썹의 기세는 옛 책이 권세를 본 자리예요. 이 자리가 좋게 나와, 따르는 사람이 생기는 우두머리 상으로 풀이해요."
+      },
+      {
+        "key": "lateLuck",
+        "name": "말년운",
+        "emoji": "🌅",
+        "title": "갈수록 잘 풀릴 상",
+        "rules": [
+          "noseLength",
+          "midFace",
+          "philtrum"
+        ],
+        "reading": "콧대와 얼굴 가운데, 인중은 옛 책이 늙도록 길한지를 본 자리예요. 이 자리가 좋게 나와, 갈수록 힘이 붙는 대기만성 상으로 풀이해요."
+      },
+      {
+        "key": "people",
+        "name": "인복",
+        "emoji": "🤝",
+        "title": "사람이 모이는 상",
+        "rules": [
+          "lipThickness",
+          "browLength"
+        ],
+        "reading": "입술과 눈썹 길이는 옛 책이 믿음직하고 충직한지를 본 자리예요. 이 자리가 좋게 나와, 곁에 사람이 남는 상으로 풀이해요."
+      }
+    ],
+    "balanced": {
+      "key": "balance",
+      "name": "두루운",
+      "emoji": "☯️",
+      "title": "두루 갖춘 상",
+      "rules": [
+        "thirdsBalance"
+      ],
+      "reading": "어느 한 곳이 유난히 튀지 않고 고르게 자리 잡았어요. 옛 책은 삼정이 고르면 부귀와 영화가 따른다고 했습니다. 크게 모자란 것 없이 두루 누리는 상으로 풀이해요."
+    },
+    "king": {
+      "key": "king",
+      "name": "왕이 될 상",
+      "emoji": "👑",
+      "title": "왕이 될 상",
+      "requires": [
+        "career",
+        "power"
+      ],
+      "minimum": 0.4,
+      "reading": "귀하게 될 자리와 권세의 자리가 함께 두드러져요. 옛 책 기준으로는 이름도 얻고 사람도 거느리는 드문 상입니다. 다만 정말 왕이 되는지는 책임지지 않아요."
+    },
+    "noCaution": {
+      "name": "방심",
+      "minimum": 0.2,
+      "reading": "크게 조심하라고 짚을 곳이 없는 상이에요. 다만 잘 풀릴 때가 가장 위험한 법이니, 방심만 조심하세요."
+    }
+  },
   "grades": [
-    { "min": 90, "name": "살아 있는 성인군자", "emoji": "😇", "color": "#00ffaa" },
-    { "min": 75, "name": "천사표 인성", "emoji": "😊", "color": "#7be495" },
-    { "min": 60, "name": "선량한 시민", "emoji": "🙂", "color": "#ffd84a" },
-    { "min": 45, "name": "은근한 악동", "emoji": "😏", "color": "#ff9f43" },
-    { "min": 0, "name": "타고난 빌런", "emoji": "😈", "color": "#ff5d6c" }
+    {
+      "min": 90,
+      "name": "살아 있는 성인군자",
+      "emoji": "😇",
+      "color": "#00ffaa"
+    },
+    {
+      "min": 75,
+      "name": "천사표 인성",
+      "emoji": "😊",
+      "color": "#7be495"
+    },
+    {
+      "min": 60,
+      "name": "선량한 시민",
+      "emoji": "🙂",
+      "color": "#ffd84a"
+    },
+    {
+      "min": 45,
+      "name": "은근한 악동",
+      "emoji": "😏",
+      "color": "#ff9f43"
+    },
+    {
+      "min": 0,
+      "name": "타고난 빌런",
+      "emoji": "😈",
+      "color": "#ff5d6c"
+    }
   ],
   "animals": [
-    { "name": "호랑이형", "traits": ["pride", "stubborn"] },
-    { "name": "여우형", "traits": ["wit", "mischief"] },
-    { "name": "사슴형", "traits": ["innocence", "kindness"] },
-    { "name": "곰형", "traits": ["loyalty", "lazy"] },
-    { "name": "공작형", "traits": ["swagger", "romance"] },
-    { "name": "원숭이형", "traits": ["humor", "playful"] }
+    {
+      "name": "호랑이형",
+      "traits": [
+        "pride",
+        "stubborn"
+      ]
+    },
+    {
+      "name": "여우형",
+      "traits": [
+        "wit",
+        "mischief"
+      ]
+    },
+    {
+      "name": "사슴형",
+      "traits": [
+        "innocence",
+        "kindness"
+      ]
+    },
+    {
+      "name": "곰형",
+      "traits": [
+        "loyalty",
+        "lazy"
+      ]
+    },
+    {
+      "name": "공작형",
+      "traits": [
+        "swagger",
+        "romance"
+      ]
+    },
+    {
+      "name": "원숭이형",
+      "traits": [
+        "humor",
+        "playful"
+      ]
+    }
   ],
   "jobs": [
-    { "trait": "kindness", "name": "인심 좋은 마을 훈장" },
-    { "trait": "mischief", "name": "의적단 두목" },
-    { "trait": "wit", "name": "제갈량 뺨치는 책사" },
-    { "trait": "stubborn", "name": "성문을 지키던 수문장" },
-    { "trait": "swagger", "name": "저잣거리 약장수" },
-    { "trait": "jealousy", "name": "궁중 암투의 달인" },
-    { "trait": "humor", "name": "장터의 인기 광대" },
-    { "trait": "loyalty", "name": "충직한 호위무사" },
-    { "trait": "greed", "name": "개성의 거상" },
-    { "trait": "lazy", "name": "낮잠 자던 한량 선비" },
-    { "trait": "pride", "name": "대쪽 같은 사헌부 관리" },
-    { "trait": "innocence", "name": "산골 약초꾼" },
-    { "trait": "playful", "name": "서당의 말썽꾸러기" },
-    { "trait": "romance", "name": "달밤의 풍류 시인" }
+    {
+      "trait": "kindness",
+      "name": "인심 좋은 마을 훈장"
+    },
+    {
+      "trait": "mischief",
+      "name": "의적단 두목"
+    },
+    {
+      "trait": "wit",
+      "name": "제갈량 뺨치는 책사"
+    },
+    {
+      "trait": "stubborn",
+      "name": "성문을 지키던 수문장"
+    },
+    {
+      "trait": "swagger",
+      "name": "저잣거리 약장수"
+    },
+    {
+      "trait": "jealousy",
+      "name": "궁중 암투의 달인"
+    },
+    {
+      "trait": "humor",
+      "name": "장터의 인기 광대"
+    },
+    {
+      "trait": "loyalty",
+      "name": "충직한 호위무사"
+    },
+    {
+      "trait": "greed",
+      "name": "개성의 거상"
+    },
+    {
+      "trait": "lazy",
+      "name": "낮잠 자던 한량 선비"
+    },
+    {
+      "trait": "pride",
+      "name": "대쪽 같은 사헌부 관리"
+    },
+    {
+      "trait": "innocence",
+      "name": "산골 약초꾼"
+    },
+    {
+      "trait": "playful",
+      "name": "서당의 말썽꾸러기"
+    },
+    {
+      "trait": "romance",
+      "name": "달밤의 풍류 시인"
+    }
   ]
 }
