@@ -7,6 +7,7 @@ import BrowserHint from '../components/BrowserHint.vue'
 const router = useRouter(), file = ref(null), busy = ref(false), error = ref('')
 const faceArt = ref(null)
 const licenseUrl = `${import.meta.env.BASE_URL}MEDIAPIPE-APACHE-LICENSE.txt`
+const privacyUrl = `${import.meta.env.BASE_URL}privacy.html`
 
 onMounted(() => {
   const context = faceArt.value?.getContext('2d')
@@ -92,7 +93,7 @@ async function selectPhoto(event) {
           <a href="https://github.com/google-ai-edge/mediapipe/blob/master/mediapipe/tasks/web/vision/README.md#privacy-notice" target="_blank" rel="noopener">MediaPipe 개인정보 안내</a>
           · <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google 개인정보처리방침</a>
         </p>
-        <p><a :href="licenseUrl" target="_blank" rel="noopener">오픈소스 라이선스 (MediaPipe, Apache-2.0)</a></p>
+        <p><a :href="privacyUrl">개인정보처리방침 전문</a> · <a :href="licenseUrl" target="_blank" rel="noopener">오픈소스 라이선스 (MediaPipe, Apache-2.0)</a></p>
       </details>
     </section>
   </div>

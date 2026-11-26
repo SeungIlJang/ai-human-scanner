@@ -64,7 +64,7 @@ Vite `base`는 Actions의 `GITHUB_REPOSITORY`에서 저장소 이름을 읽어 `
 
 사진과 얼굴 특징점은 앱의 메모리에서만 처리합니다. LocalStorage와 백엔드를 사용하지 않습니다. 홈으로 돌아가거나 다시 분석하면 세션 데이터를 초기화합니다. 촬영 대상자의 동의를 받고 사용하세요.
 
-MediaPipe는 입력 이미지가 기기에서 처리되고 Google로 보내지지 않는다고 설명하지만, **API 성능·사용량 지표를 Google로 전송한다**는 점과 **앱 운영자가 사용자 동의를 받을 책임**을 별도 [개인정보 안내](https://github.com/google-ai-edge/mediapipe/blob/master/mediapipe/tasks/web/vision/README.md#privacy-notice)에 명시합니다. 홈 화면의 **개인정보 안내**에 이 내용과 링크, 오픈소스 라이선스 링크를 표시합니다. 별도 동의 절차가 필요한지는 배포 전에 검토하세요.
+MediaPipe는 입력 이미지가 기기에서 처리되고 Google로 보내지지 않는다고 설명하지만, **API 성능·사용량 지표를 Google로 전송한다**는 점과 **앱 운영자가 사용자 동의를 받을 책임**을 별도 [개인정보 안내](https://github.com/google-ai-edge/mediapipe/blob/master/mediapipe/tasks/web/vision/README.md#privacy-notice)에 명시합니다. 홈 화면의 **개인정보 안내**에 이 내용과 링크, 오픈소스 라이선스 링크를 표시합니다. 개인정보처리방침 전문은 `public/privacy.html`이며 스토어 등록에 쓰는 주소는 `<사이트 주소>/privacy.html`입니다. 광고나 통계 도구를 추가하면 이 페이지를 먼저 고치세요. 별도 동의 절차가 필요한지는 배포 전에 검토하세요.
 
 ## 오픈소스와 모델
 
