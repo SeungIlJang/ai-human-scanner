@@ -4,4 +4,12 @@ export async function openCamera(facingMode = 'user') {
   catch (error) { if (error.name === 'NotAllowedError') throw new Error('카메라 권한이 거부되었습니다. 브라우저 설정에서 허용하거나 사진을 선택해 주세요.'); throw new Error('카메라를 시작하지 못했습니다. 다른 앱이 사용 중인지 확인해 주세요.') }
 }
 export function stopCamera(stream) { stream?.getTracks().forEach(track => track.stop()) }
-export function captureCanvas(video) { const canvas = document.createElement('canvas'); canvas.width = video.videoWidth; canvas.height = video.videoHeight; canvas.getContext('2d').drawImage(video,0,0); return canvas }
+export function captureCanvas(video, mirrored = false) {
+  const canvas = document.createElement('canvas')
+  canvas.width = video.videoWidth
+  canvas.height = video.videoHeight
+  const context = canvas.getContext('2d')
+  if (mirrored) context.setTransform(-1, 0, 0, 1, canvas.width, 0)
+  context.drawImage(video, 0, 0)
+  return canvas
+}

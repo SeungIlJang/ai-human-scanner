@@ -107,7 +107,7 @@ async function shoot() {
   const token = ++run
   cancelFrame()
   try {
-    const captured = captureCanvas(video.value)
+    const captured = captureCanvas(video.value, facing.value === 'user')
     // Static detection checks the exact captured image and rejects extra faces.
     const imageDetector = await getDetector('IMAGE')
     if (!active || token !== run) return
