@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { session, resetSession } from '../stores/session.js'
 import traditions from '../data/physiognomy-sources.json'
@@ -11,6 +11,24 @@ const faceShape = computed(() => session.result?.faceShape)
 const scores = computed(() => session.result?.scores)
 const measurements = computed(() => session.result?.measurements)
 const interpretations = computed(() => measurements.value?.filter(group => group.interpretation) ?? [])
+
+const shareStatus = ref('')
+async function share() {
+  const lines = scores.value.highlights.map(item => `${item.label}: ${item.unit ? item.value.toLocaleString('ko-KR') + item.unit : item.value}`)
+  if (faceShape.value) lines.push(`관상 스캔 점수: ${faceShape.value.total}점`)
+  const url = location.href.split('#')[0]
+  const text = ['모두의 인성측정으로 본 내 관상 결과 (재미용)', ...lines].join('\n')
+  try {
+    if (navigator.share) await navigator.share({ title: '모두의 인성측정', text, url })
+    else {
+      await navigator.clipboard.writeText(`${text}\n${url}`)
+      shareStatus.value = '결과를 클립보드에 복사했어요.'
+    }
+  } catch (error) {
+    // Closing the share sheet is not an error.
+    if (error.name !== 'AbortError') shareStatus.value = '공유하지 못했습니다. 화면을 캡처해서 공유해 주세요.'
+  }
+}
 
 function restart() {
   resetSession()
@@ -127,6 +145,8 @@ function restart() {
           </template>
         </div>
       </details>
+      <button v-if="scores" class="share-button" @click="share">결과 공유하기</button>
+      <p class="share-status" role="status">{{ shareStatus }}</p>
       <button class="restart-button" @click="restart">◌ &nbsp; 다시 분석하기</button>
     </div>
   </section>
@@ -170,5 +190,7 @@ function restart() {
 .basis-source{display:inline-block;margin-top:6px;color:#81f5d1;text-decoration:underline;font-size:12px}
 .tradition-list{padding-left:19px;color:#c8dbd4;font-size:13px;line-height:1.6}
 .tradition-list a{display:block;text-decoration:underline;color:#81f5d1}
+.share-button{width:100%;min-height:48px;border:0;border-radius:8px;background:#21d9a4;color:#06231b;font-size:15px;font-weight:800;cursor:pointer}
+.share-status{min-height:18px;margin:6px 0;color:#c8dbd4;font-size:12px;text-align:center}
 @media(max-width:540px){.measurement-grid{grid-template-columns:1fr}}
 </style>

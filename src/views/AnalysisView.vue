@@ -22,7 +22,7 @@ onMounted(() => {
     const scoreInputs = session.captureMetrics ? [{ metrics: session.captureMetrics }] : measurements
     session.result = { faceShape, measurements, scores: createPhysiognomyScores(scoreInputs) }
     completeTone()
-    finishTimer = setTimeout(() => router.push('/result'), 450)
+    finishTimer = setTimeout(() => router.replace('/result'), 450)
   }, 40)
 })
 onBeforeUnmount(()=>{clearInterval(timer.value);clearTimeout(finishTimer)})

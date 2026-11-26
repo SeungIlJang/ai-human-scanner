@@ -2,8 +2,10 @@ import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision'
 let detector
 let loading
 let currentMode = 'IMAGE'
+// MediaPipe ships a SIMD-only binary. This is the smallest module that uses a SIMD instruction.
+const simdSupported = typeof WebAssembly === 'object' && WebAssembly.validate(new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0, 10, 10, 1, 8, 0, 65, 0, 253, 15, 253, 98, 11]))
 export async function getDetector(mode = 'IMAGE') {
-  if (!await FilesetResolver.isSimdSupported()) throw new Error('이 브라우저는 고속 얼굴 분석(SIMD)을 지원하지 않습니다. 최신 브라우저로 업데이트해 주세요.')
+  if (!simdSupported) throw new Error('이 브라우저는 고속 얼굴 분석(SIMD)을 지원하지 않습니다. 최신 브라우저로 업데이트해 주세요.')
   if (!detector) {
     if (!loading) loading = (async () => {
       const wasm = await FilesetResolver.forVisionTasks(`${import.meta.env.BASE_URL}wasm`)

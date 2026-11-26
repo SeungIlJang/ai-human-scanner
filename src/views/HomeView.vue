@@ -2,8 +2,10 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { session, resetSession } from '../stores/session.js'
+import { checkCapturedFace, isFacingCamera } from '../utils/captureQuality.js'
 const router = useRouter(), file = ref(null), busy = ref(false), error = ref('')
 const faceArt = ref(null)
+const licenseUrl = `${import.meta.env.BASE_URL}MEDIAPIPE-APACHE-LICENSE.txt`
 
 onMounted(() => {
   const context = faceArt.value?.getContext('2d')
@@ -45,12 +47,16 @@ async function selectPhoto(event) {
   error.value = ''; if (!chosen.type.startsWith('image/')) { error.value='이미지 파일을 선택해 주세요.'; return }
   busy.value = true; let url
   try {
-    const { detectFace, loadImage } = await import('../services/faceDetector.js')
+    const { getDetector, loadImage } = await import('../services/faceDetector.js')
     url = URL.createObjectURL(chosen); const image = await loadImage(url)
-    const faces = await detectFace(image)
+    // Detect on the downscaled canvas: it has the orientation the user sees and a bounded size.
+    const canvas = document.createElement('canvas'); const scale = Math.min(1, 1280/Math.max(image.naturalWidth,image.naturalHeight)); canvas.width=Math.round(image.naturalWidth*scale);canvas.height=Math.round(image.naturalHeight*scale);canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height)
+    const result = (await getDetector('IMAGE')).detect(canvas)
+    const faces = result.faceLandmarks
     if (faces.length !== 1) { error.value = faces.length ? '여러 얼굴이 감지되었습니다. 한 명만 나온 사진을 선택해 주세요.' : '얼굴을 찾지 못했습니다. 정면 얼굴이 잘 보이는 사진을 선택해 주세요.'; return }
-    const canvas = document.createElement('canvas'); const scale = Math.min(1, 1280/Math.max(image.width,image.height)); canvas.width=Math.round(image.width*scale);canvas.height=Math.round(image.height*scale);canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height)
-    resetSession(); session.image=canvas.toDataURL('image/jpeg',.9);session.imageAspect=image.naturalWidth/image.naturalHeight;session.landmarks=faces;router.push('/analysis')
+    if (!isFacingCamera(result.facialTransformationMatrixes?.[0])) { error.value = '얼굴이 옆이나 위아래로 돌아가 있습니다. 정면을 바라보는 사진을 선택해 주세요.'; return }
+    if (checkCapturedFace(canvas, faces[0])) { error.value = '얼굴이 너무 어둡거나 밝거나 흐립니다. 얼굴이 선명하게 나온 사진을 선택해 주세요.'; return }
+    resetSession(); session.image=canvas.toDataURL('image/jpeg',.9);session.imageAspect=canvas.width/canvas.height;session.landmarks=faces;router.push('/analysis')
   } catch(e) { error.value = e.message.includes('fetch') ? '얼굴 분석 모델을 불러오지 못했습니다. 연결 상태를 확인해 주세요.' : e.message }
   finally { if(url) URL.revokeObjectURL(url); busy.value=false; event.target.value='' }
 }
@@ -76,7 +82,16 @@ async function selectPhoto(event) {
         </div>
       </div>
 
-      <p class="home-note">오락용 가상 결과입니다. 촬영 대상자의 동의를 받은 뒤 이용해 주세요.</p>
+      <p class="home-note">오락용 가상 결과입니다. 촬영 대상자의 동의를 받은 뒤 이용해 주세요. 분석을 시작하면 아래 개인정보 안내에 동의한 것으로 봅니다.</p>
+      <details class="privacy-note">
+        <summary>개인정보 안내</summary>
+        <p>사진과 얼굴 특징점은 이 기기의 메모리에서만 처리합니다. 서버로 보내거나 기기에 저장하지 않으며, 홈으로 돌아오면 지웁니다.</p>
+        <p>얼굴 인식에는 Google MediaPipe를 사용합니다. 입력 이미지는 기기에서 처리되어 Google 서버로 전송되지 않습니다. 다만 MediaPipe는 라이브러리의 성능·사용량 지표를 Google로 전송하며, Google은 이를 개인정보처리방침에 따라 처리합니다. 분석을 시작하면 이에 동의한 것으로 봅니다.
+          <a href="https://github.com/google-ai-edge/mediapipe/blob/master/mediapipe/tasks/web/vision/README.md#privacy-notice" target="_blank" rel="noopener">MediaPipe 개인정보 안내</a>
+          · <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google 개인정보처리방침</a>
+        </p>
+        <p><a :href="licenseUrl" target="_blank" rel="noopener">오픈소스 라이선스 (MediaPipe, Apache-2.0)</a></p>
+      </details>
     </section>
   </div>
 </template>
@@ -94,5 +109,9 @@ async function selectPhoto(event) {
 .scan-reticle::before{content:"";position:absolute;inset:8px;background:linear-gradient(#6bffe1,#6bffe1) left top/17px 2px,linear-gradient(#6bffe1,#6bffe1) left top/2px 17px,linear-gradient(#6bffe1,#6bffe1) right top/17px 2px,linear-gradient(#6bffe1,#6bffe1) right top/2px 17px,linear-gradient(#6bffe1,#6bffe1) left bottom/17px 2px,linear-gradient(#6bffe1,#6bffe1) left bottom/2px 17px,linear-gradient(#6bffe1,#6bffe1) right bottom/17px 2px,linear-gradient(#6bffe1,#6bffe1) right bottom/2px 17px;background-repeat:no-repeat}
 .scan-reticle canvas{width:85%;height:auto;display:block;filter:drop-shadow(0 0 9px #28f2b66e)}
 .home-note{margin:14px auto 0;color:#a5bec7;font-size:12px;line-height:1.55;word-break:keep-all}
+.privacy-note{margin:10px auto 0;max-width:46ch;color:#a5bec7;font-size:12px;line-height:1.6;text-align:left;word-break:keep-all}
+.privacy-note summary{cursor:pointer;padding:6px 0;text-align:center;font-weight:700;color:#c9dde4}
+.privacy-note p{margin:6px 0 0}
+.privacy-note a{color:#81f5d1;text-decoration:underline}
 @media(max-height:500px){.home{padding-top:12px}.home-hero{padding-block:16px}.home-hero .display{font-size:clamp(30px,7vw,42px)}.hero-intro{margin:10px auto 13px}}
 </style>

@@ -1,10 +1,10 @@
-# AI HUMAN SCANNER · AI 인간 분석기
+# 모두의 인성측정
 
 얼굴 특징점을 기기 안에서 시각화하고, 얼굴 비율과 좌우 균형을 측정해 재미용 관상 점수를 보여주는 Vue 3 모바일 웹앱입니다. 실제 인성, 성격, 거짓말 횟수는 측정하지 않습니다.
 
 ## 실행
 
-Node.js 20.16 이상과 npm이 필요합니다.
+Node.js 20.19 이상(20.x) 또는 22.12 이상과 npm이 필요합니다. Vite 8의 요구 사항입니다.
 
 ```bash
 npm ci
@@ -22,6 +22,9 @@ npm run preview
 ## 기능
 
 - 전면/후면 카메라, 안정적인 얼굴 인식 후 자동 촬영, 수동 촬영, 갤러리 업로드
+- 업로드한 사진도 1280px 이하로 줄인 뒤 정면 여부·조명·선명도를 확인
+- 앱이 백그라운드로 가면 카메라를 해제하고 돌아오면 다시 열며, 카메라 오류 시 다시 시도 또는 사진 분석으로 전환
+- 결과 텍스트 공유(Web Share API, 미지원 브라우저는 클립보드 복사). 사진은 공유하지 않음
 - 카메라에서는 1명 추적 모드의 MediaPipe 시간축 보정을 사용하고, 촬영 사진은 정지 이미지 모드에서 다시 분석해 여러 얼굴을 확인
 - MediaPipe Face Landmarker 특징점 478개와 연결선 HUD
 - 사진 속 눈 너비, 볼 간격, 입꼬리 간격의 좌우 균형을 평균한 관상 스캔 점수와 얼굴 비율 표시
@@ -33,9 +36,9 @@ npm run preview
 
 ## 경량화와 오프라인 사용
 
-Vue/Vite만 UI에 사용하고 무거운 UI 컴포넌트 라이브러리는 사용하지 않습니다. 얼굴 분석 라이브러리와 결과 화면은 처음부터 내려받지 않고, 필요한 기능을 열 때 로드합니다. PWA 서비스 워커는 홈 화면과 실제로 요청한 파일을 캐시합니다. 따라서 **최초 얼굴 분석을 온라인에서 완료한 뒤** 해당 기기에서 오프라인 분석을 사용할 수 있습니다.
+Vue/Vite만 UI에 사용하고 무거운 UI 컴포넌트 라이브러리는 사용하지 않습니다. 얼굴 분석 라이브러리와 결과 화면은 처음부터 내려받지 않고, 필요한 기능을 열 때 로드합니다. PWA 서비스 워커는 홈 화면과 실제로 요청한 파일을 캐시합니다. `vite.config.js`가 빌드할 때 `sw.js`의 캐시 이름에 해시를 넣습니다. 앱 캐시는 빌드마다 바뀌고, 모델·WASM 캐시는 해당 파일이 바뀔 때만 바뀌므로 `sw.js`의 버전을 직접 올릴 필요가 없습니다. 따라서 **최초 얼굴 분석을 온라인에서 완료한 뒤** 해당 기기에서 오프라인 분석을 사용할 수 있습니다.
 
-용량을 줄이기 위해 MediaPipe의 SIMD WASM만 배포합니다. WebAssembly SIMD를 지원하지 않는 오래된 브라우저에는 업데이트 안내를 표시합니다. 최신 Android Chrome 및 iPhone Safari를 대상으로 하며, 구형 브라우저 지원이 필요하면 `@mediapipe/tasks-vision/wasm`의 `vision_wasm_nosimd_internal.js`와 `.wasm`을 `public/wasm/`에 추가하고 `src/services/faceDetector.js`의 SIMD 검사 코드를 제거하세요. 이 경우 배포 용량이 약 9.7MB 늘어납니다.
+MediaPipe 1.x는 WebAssembly SIMD 전용 WASM만 제공합니다(약 14.7MB, 전송 시 압축됨). SIMD를 지원하지 않는 오래된 브라우저에는 업데이트 안내를 표시합니다. 최신 Android Chrome 및 iPhone Safari를 대상으로 합니다. `@mediapipe/tasks-vision` 버전을 바꾸면 `node_modules/@mediapipe/tasks-vision/wasm/`의 `vision_wasm_internal.js`와 `.wasm`을 `public/wasm/`에 다시 복사하세요.
 
 ## GitHub Pages 배포
 
@@ -45,11 +48,13 @@ Vue/Vite만 UI에 사용하고 무거운 UI 컴포넌트 라이브러리는 사�
 
 Vite `base`는 Actions의 `GITHUB_REPOSITORY`에서 저장소 이름을 읽어 `/<repo>/`로 설정합니다. 로컬에서는 `/`입니다. 사용자/조직 루트 저장소(`*.github.io`)는 `vite.config.js`의 `base`를 `/`로 바꾸세요.
 
+공유 미리보기(OG 태그)의 주소는 `https://<owner>.github.io/<repo>/`로 만듭니다. 사용자 지정 도메인을 쓰면 빌드 환경 변수 `SITE_URL`에 사이트 주소를 넣으세요. `public/og-image.png`가 미리보기 이미지입니다.
+
 ## 개인정보
 
 사진과 얼굴 특징점은 앱의 메모리에서만 처리합니다. LocalStorage와 백엔드를 사용하지 않습니다. 홈으로 돌아가거나 다시 분석하면 세션 데이터를 초기화합니다. 촬영 대상자의 동의를 받고 사용하세요.
 
-MediaPipe는 입력 이미지가 기기에서 처리되고 Google로 보내지지 않는다고 설명하지만, **SDK 사용량·성능 지표 전송 가능성**을 별도 [개인정보 안내](https://github.com/google-ai-edge/mediapipe/blob/master/mediapipe/tasks/web/vision/README.md#privacy-notice)에 명시합니다. 배포 전 해당 안내에 맞는 고지·동의 절차를 검토하세요.
+MediaPipe는 입력 이미지가 기기에서 처리되고 Google로 보내지지 않는다고 설명하지만, **API 성능·사용량 지표를 Google로 전송한다**는 점과 **앱 운영자가 사용자 동의를 받을 책임**을 별도 [개인정보 안내](https://github.com/google-ai-edge/mediapipe/blob/master/mediapipe/tasks/web/vision/README.md#privacy-notice)에 명시합니다. 홈 화면의 **개인정보 안내**에 이 내용과 링크, 오픈소스 라이선스 링크를 표시합니다. 별도 동의 절차가 필요한지는 배포 전에 검토하세요.
 
 ## 오픈소스와 모델
 
@@ -60,4 +65,4 @@ MediaPipe는 입력 이미지가 기기에서 처리되고 Google로 보내지�
 
 ## 확인한 내용과 한계
 
-`npm test`에서 500개 시드의 재현성·점수 범위·등급·해설 수량을 확인하고 `npm run build`로 PWA 파일을 생성했습니다. Android Chrome, iPhone Safari, 실제 전·후면 카메라, 권한 거부, 배포된 GitHub Pages는 이 개발 환경에서 실기기 검증이 필요합니다.
+`npm test`에서 측정·점수 계산·자동 촬영 조건·촬영 품질 검사를 확인하고, 극단적인 비율을 포함한 500개 측정값 조합에서 점수 범위를 확인합니다. `npm run build`로 PWA 파일을 생성했습니다. Android Chrome, iPhone Safari, 실제 전·후면 카메라, 권한 거부, 배포된 GitHub Pages는 이 개발 환경에서 실기기 검증이 필요합니다.

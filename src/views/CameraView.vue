@@ -13,7 +13,7 @@ const router = useRouter()
 const video = ref(null), frame = ref(null), stream = shallowRef(null), facing = ref('user')
 const faces = shallowRef([]), sourceSize = ref({ width: 0, height: 0 })
 const status = ref('카메라를 준비하는 중...'), busy = ref(false)
-const guideReady = ref(false)
+const guideReady = ref(false), failed = ref(false)
 const guideStyle = {
   width: `${scanGuide.maxWidth * 100}%`,
   height: `${scanGuide.maxHeight * 100}%`,
@@ -76,8 +76,7 @@ function processFrame(token, mediaTime) {
       if (measurements) { shoot(measurements); return }
     }
   } catch (error) {
-    status.value = `얼굴 분석 중 오류가 발생했습니다. ${error.message}`
-    releaseCamera()
+    fail(`얼굴 분석 중 오류가 발생했습니다. ${error.message}`)
     return
   }
   schedule(token)
@@ -126,9 +125,20 @@ function showTrackingHint(message, now) {
   // Keep a blink or a brief tracking drop from flashing a new prompt.
   if (now - hintSince >= 300) status.value = message
 }
+function fail(message) {
+  ++run
+  releaseCamera()
+  faces.value = []
+  guideReady.value = false
+  busy.value = false
+  failed.value = true
+  status.value = message
+}
 async function start() {
   const token = ++run
   releaseCamera()
+  busy.value = false
+  failed.value = false
   faces.value = []
   guideReady.value = false
   captureGate.reset()
@@ -141,6 +151,10 @@ async function start() {
     acquired = await openCamera(facing.value)
     if (!active || token !== run) { stopCamera(acquired); return }
     stream.value = acquired
+    // Another app or the OS can take the camera away; stopCamera() itself does not fire this event.
+    acquired.getVideoTracks()[0]?.addEventListener('ended', () => {
+      if (active && stream.value === acquired) fail('카메라 연결이 끊겼습니다. 다시 시도해 주세요.')
+    })
     await nextTick()
     video.value.srcObject = acquired
     await video.value.play()
@@ -154,8 +168,7 @@ async function start() {
     schedule(token)
   } catch (error) {
     if (token !== run) { stopCamera(acquired); return }
-    releaseCamera()
-    status.value = error.message
+    fail(error.message)
   }
 }
 function switchCamera() {
@@ -224,13 +237,22 @@ async function resume(token) {
     busy.value = false
     schedule(token)
   } catch (error) {
-    status.value = `얼굴 분석 중 오류가 발생했습니다. ${error.message}`
-    releaseCamera()
-    busy.value = false
+    fail(`얼굴 분석 중 오류가 발생했습니다. ${error.message}`)
   }
 }
-onMounted(start)
-onBeforeUnmount(() => { active = false; ++run; releaseCamera() })
+// Mobile browsers freeze or drop the stream in the background, so release it and reopen on return.
+function onVisibilityChange() {
+  if (document.hidden) {
+    if (!stream.value) return
+    ++run
+    releaseCamera()
+    faces.value = []
+    guideReady.value = false
+    status.value = '카메라를 일시 중지했습니다.'
+  } else if (!stream.value && !failed.value) start()
+}
+onMounted(() => { document.addEventListener('visibilitychange', onVisibilityChange); start() })
+onBeforeUnmount(() => { active = false; ++run; document.removeEventListener('visibilitychange', onVisibilityChange); releaseCamera() })
 </script>
 
 <template>
@@ -243,11 +265,15 @@ onBeforeUnmount(() => { active = false; ++run; releaseCamera() })
       <video ref="video" autoplay muted playsinline :style="{ transform: facing === 'user' ? 'scaleX(-1)' : '' }"></video>
       <FaceMesh :landmarks="faces" :mirrored="facing === 'user'" :source-width="sourceSize.width" :source-height="sourceSize.height" />
       <div class="scan-guide" :class="{ 'scan-guide-ready': guideReady }" :style="guideStyle" aria-hidden="true"></div>
-      <div class="camera-hint" role="status" aria-atomic="true" :class="{ 'camera-hint-error': status.includes('오류') || status.includes('거부') }">
+      <div class="camera-hint" role="status" aria-atomic="true" :class="{ 'camera-hint-error': failed }">
         {{ status }}
       </div>
     </div>
-    <div class="camera-actions">
+    <div v-if="failed" class="camera-actions">
+      <button class="btn neon-btn" @click="start">다시 시도</button>
+      <router-link class="btn outline-btn" to="/">사진으로 분석</router-link>
+    </div>
+    <div v-else class="camera-actions">
       <button class="btn neon-btn" :disabled="!guideReady || busy" @click="requestCapture">얼굴 촬영</button>
       <button class="btn outline-btn" :disabled="busy" @click="switchCamera">카메라 전환</button>
     </div>
