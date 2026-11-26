@@ -37,11 +37,18 @@ function draw() {
   ctx.lineWidth = props.bright ? 1 : .65
   drawConnections(ctx, points, project, FaceLandmarker.FACE_LANDMARKS_TESSELATION)
 
-  ctx.strokeStyle = '#00ffaa'
-  ctx.lineWidth = props.bright ? 2.5 : 2.2
-  ctx.shadowColor = '#00ffaa'
-  ctx.shadowBlur = 7
+  // The model's face oval ends at the forehead, not the hairline. Keep it
+  // subtle and emphasize features that the landmarks actually locate.
+  ctx.strokeStyle = 'rgba(0,255,170,.24)'
+  ctx.lineWidth = 1
   drawConnections(ctx, points, project, FaceLandmarker.FACE_LANDMARKS_FACE_OVAL)
+  ctx.strokeStyle = '#00ffaa'
+  ctx.lineWidth = props.bright ? 2 : 1.7
+  ctx.shadowColor = '#00ffaa'
+  ctx.shadowBlur = 5
+  for (const connections of [FaceLandmarker.FACE_LANDMARKS_LEFT_EYE, FaceLandmarker.FACE_LANDMARKS_RIGHT_EYE, FaceLandmarker.FACE_LANDMARKS_LEFT_EYEBROW, FaceLandmarker.FACE_LANDMARKS_RIGHT_EYEBROW, FaceLandmarker.FACE_LANDMARKS_LIPS]) {
+    drawConnections(ctx, points, project, connections)
+  }
   ctx.shadowBlur = 0
 
   ctx.fillStyle = '#00ffaa'

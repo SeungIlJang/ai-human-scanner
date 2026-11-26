@@ -7,13 +7,14 @@ export async function getDetector(mode = 'IMAGE') {
   if (!detector) {
     if (!loading) loading = (async () => {
       const wasm = await FilesetResolver.forVisionTasks(`${import.meta.env.BASE_URL}wasm`)
-      return FaceLandmarker.createFromOptions(wasm, { baseOptions: { modelAssetPath: `${import.meta.env.BASE_URL}models/face_landmarker.task`, delegate: 'CPU' }, runningMode: 'IMAGE', numFaces: 2, minFaceDetectionConfidence: .5, minFacePresenceConfidence: .5 })
+      return FaceLandmarker.createFromOptions(wasm, { baseOptions: { modelAssetPath: `${import.meta.env.BASE_URL}models/face_landmarker.task`, delegate: 'CPU' }, runningMode: 'IMAGE', numFaces: 2, minFaceDetectionConfidence: .5, minFacePresenceConfidence: .5, minTrackingConfidence: .5 })
     })()
     try { detector = await loading }
     catch (error) { loading = null; throw error }
   }
   if (currentMode !== mode) {
-    await detector.setOptions({ runningMode: mode })
+    // MediaPipe smooths video landmarks only when numFaces is 1.
+    await detector.setOptions({ runningMode: mode, numFaces: mode === 'VIDEO' ? 1 : 2 })
     currentMode = mode
   }
   return detector

@@ -5,13 +5,16 @@ import { openCamera, stopCamera, captureCanvas } from '../services/cameraService
 import { getDetector } from '../services/faceDetector.js'
 import { session, resetSession } from '../stores/session.js'
 import FaceMesh from '../components/FaceMesh.vue'
+import { faceFraming, createAutoCaptureGate } from '../utils/autoCapture.js'
 
 const router = useRouter()
-const video = ref(null), stream = shallowRef(null), facing = ref('user')
+const video = ref(null), frame = ref(null), stream = shallowRef(null), facing = ref('user')
 const faces = shallowRef([]), sourceSize = ref({ width: 0, height: 0 })
 const status = ref('카메라를 준비하는 중...'), busy = ref(false)
 let detector, frameId, frameKind, run = 0, active = true
 let lastProcessed = 0, lastTimestamp = 0, lastMediaTime = -1
+let autoRetryAfter = 0
+const captureGate = createAutoCaptureGate()
 
 function nextTimestamp() {
   lastTimestamp = Math.max(performance.now(), lastTimestamp + 1)
@@ -50,7 +53,10 @@ function processFrame(token, mediaTime) {
         sourceSize.value = { width: video.value.videoWidth, height: video.value.videoHeight }
       }
       faces.value = detector.detectForVideo(video.value, nextTimestamp()).faceLandmarks
-      status.value = faces.value.length === 1 ? '얼굴 인식 완료 · 촬영할 수 있어요' : faces.value.length > 1 ? '여러 얼굴이 감지되었습니다. 한 명만 촬영해 주세요.' : '얼굴을 찾는 중 · 정면을 바라봐 주세요'
+      const framing = faceFraming(faces.value[0], video.value.videoWidth, video.value.videoHeight, frame.value.clientWidth, frame.value.clientHeight, facing.value === 'user')
+      status.value = framing.message
+      if (now >= autoRetryAfter && captureGate.update(framing, now)) { shoot(); return }
+      if (now < autoRetryAfter) captureGate.reset()
     }
   } catch (error) {
     status.value = `얼굴 분석 중 오류가 발생했습니다. ${error.message}`
@@ -63,6 +69,8 @@ async function start() {
   const token = ++run
   releaseCamera()
   faces.value = []
+  captureGate.reset()
+  autoRetryAfter = 0
   sourceSize.value = { width: 0, height: 0 }
   status.value = '카메라를 준비하는 중...'
   let acquired
@@ -92,19 +100,21 @@ function switchCamera() {
   facing.value = facing.value === 'user' ? 'environment' : 'user'
   start()
 }
-function shoot() {
+async function shoot() {
   if (faces.value.length !== 1 || busy.value || !detector || !video.value) return
   busy.value = true
+  status.value = '얼굴을 촬영하고 확인하는 중...'
   const token = ++run
   cancelFrame()
   try {
     const captured = captureCanvas(video.value)
-    // Detect on the exact pixels stored in the session, not a previous video frame.
-    const landmarks = detector.detectForVideo(captured, nextTimestamp()).faceLandmarks
+    // Static detection checks the exact captured image and rejects extra faces.
+    const imageDetector = await getDetector('IMAGE')
+    if (!active || token !== run) return
+    const landmarks = imageDetector.detect(captured).faceLandmarks
     if (landmarks.length !== 1) {
       status.value = landmarks.length ? '여러 얼굴이 감지되었습니다. 한 명만 촬영해 주세요.' : '촬영 순간 얼굴을 찾지 못했습니다. 다시 시도해 주세요.'
-      busy.value = false
-      schedule(token)
+      await resume(token)
       return
     }
     const image = captured.toDataURL('image/jpeg', .9)
@@ -115,8 +125,22 @@ function shoot() {
     router.push('/analysis')
   } catch (error) {
     status.value = `촬영 중 오류가 발생했습니다. ${error.message}`
+    await resume(token)
+  }
+}
+async function resume(token) {
+  if (!active || token !== run) return
+  try {
+    detector = await getDetector('VIDEO')
+    if (!active || token !== run) return
+    captureGate.reset()
+    autoRetryAfter = performance.now() + 1200
     busy.value = false
     schedule(token)
+  } catch (error) {
+    status.value = `얼굴 분석 중 오류가 발생했습니다. ${error.message}`
+    releaseCamera()
+    busy.value = false
   }
 }
 onMounted(start)
@@ -125,16 +149,16 @@ onBeforeUnmount(() => { active = false; ++run; releaseCamera() })
 
 <template>
   <section>
-    <div class="page-head"><div class="eyebrow">LIVE FACE CAPTURE</div><h1>카메라 스캔</h1><p class="muted">한 명의 얼굴을 화면에 맞춘 뒤 촬영해 주세요.</p></div>
+    <div class="page-head"><div class="eyebrow">LIVE FACE CAPTURE</div><h1>카메라 스캔</h1><p class="muted">얼굴이 안정적으로 인식되면 자동으로 촬영합니다.</p></div>
     <div class="camera-layout">
-      <div class="camera-frame glow">
+      <div ref="frame" class="camera-frame glow">
         <video ref="video" autoplay muted playsinline :style="{ transform: facing === 'user' ? 'scaleX(-1)' : '' }"></video>
         <FaceMesh :landmarks="faces" :mirrored="facing === 'user'" :source-width="sourceSize.width" :source-height="sourceSize.height" />
         <div class="scan-info">{{ faces.length === 1 ? '● FACE LOCKED' : '○ SEARCHING FACE' }}</div>
       </div>
       <div class="camera-controls panel">
         <span class="badge">● LOCAL CAMERA</span><h2>촬영 준비</h2>
-        <p class="muted">빛이 충분하고 얼굴 전체가 보이는 위치에서 촬영하면 더 잘 인식됩니다.</p>
+        <p class="muted">얼굴 전체를 화면 중앙에 맞추고 잠시 움직이지 마세요. 자동 촬영이 어려우면 아래 버튼을 누를 수 있습니다.</p>
         <div class="notice">사진과 얼굴 특징점은 기기 밖으로 전송되지 않습니다. 촬영 대상자의 동의를 확인해 주세요.</div>
         <p :class="status.includes('오류') || status.includes('거부') ? 'error' : 'muted'" role="status">{{ status }}</p>
         <div class="action-row"><button class="btn neon-btn" :disabled="faces.length !== 1 || busy" @click="shoot">◉ &nbsp; 얼굴 촬영</button><button class="btn outline-btn" :disabled="busy" @click="switchCamera">카메라 전환</button><router-link class="btn text-btn" to="/">닫기</router-link></div>
