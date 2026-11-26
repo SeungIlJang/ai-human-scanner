@@ -28,11 +28,14 @@ export function createPhysiognomyScores(groups, concepts = traditions.concepts) 
     highlights: [
       { label: '인성 점수', value: scores.kindness, unit: '점' },
       { label: '거짓말 횟수', value: lieCount, unit: '회' },
-      { label: '못된 짓 횟수', value: 3 * scores.mischief, unit: '회' },
+      { label: '못된 점수', value: scores.mischief, unit: '점' },
       { label: '잔머리 지수', value: scores.wit, unit: '점' },
       { label: '전생 직업', value: job },
       { label: '동물 유형', value: animalTypes[animalIndex] }
     ],
-    additional: extraScores.map(({ key, label }) => ({ key, label, value: scores[key] }))
+    additional: [
+      { key: 'mischiefCount', label: '못된 짓 횟수', value: 3 * scores.mischief, unit: '회' },
+      ...extraScores.map(({ key, label }) => ({ key, label, value: scores[key], unit: '점' }))
+    ]
   }
 }

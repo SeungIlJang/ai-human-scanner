@@ -41,6 +41,7 @@ function restart() {
           <details class="shape-details">
             <summary>점수에 반영된 관상 기준</summary>
             <p>전통 관상 자료는 어떤 부위를 살펴볼지 정하는 데 쓰고, 점수와 유형은 앱의 규칙으로 생성합니다. 오관에서는 눈썹·눈·코·입의 사진 측정값을 사용합니다.</p>
+            <p>얼굴 측정값이 같으면 점수와 유형도 같아요.</p>
             <div class="measurement-grid">
               <section v-for="group in scores.basis" :key="group.key" class="measurement-group">
                 <h3>{{ group.title }}</h3>
@@ -117,7 +118,12 @@ function restart() {
       <details v-if="scores?.additional.length" class="shape-score additional-scores">
         <summary>다른 점수 보기</summary>
         <div class="featured-scores">
-          <ScoreBar v-for="item in scores.additional" :key="item.key" :label="item.label" :value="item.value" />
+          <template v-for="item in scores.additional" :key="item.key">
+            <div v-if="item.unit === '회'" class="result-count">
+              <span>{{ item.label }}</span><strong>{{ item.value.toLocaleString('ko-KR') }}{{ item.unit }}</strong>
+            </div>
+            <ScoreBar v-else :label="item.label" :value="item.value" />
+          </template>
         </div>
       </details>
       <button class="restart-button" @click="restart">◌ &nbsp; 다시 분석하기</button>
@@ -146,6 +152,8 @@ function restart() {
 .shape-details summary{cursor:pointer;color:#f5f5f5;font-size:14px;font-weight:700;padding:6px 0}
 .additional-scores summary{cursor:pointer;font-size:15px;font-weight:700;padding:6px 0}
 .additional-scores .featured-scores{margin-top:12px}
+.result-count{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:8px;background:#1b342d;font-size:13px}
+.result-count strong{color:#81f5d1}
 .interpretations{display:grid;gap:8px}
 .interpretation{padding:11px;border-radius:8px;background:#1b342d}
 .interpretation h3{margin:0;font-size:15px}
