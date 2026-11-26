@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { session, resetSession } from '../stores/session.js'
 import { measureFaceShape } from '../services/faceShapeScore.js'
+import { measureFaceDetails } from '../services/faceMeasurements.js'
 import { createPhysiognomyScores } from '../services/physiognomyScore.js'
 import ScanAnimation from '../components/ScanAnimation.vue'
 const router=useRouter(), progress=ref(0), timer=ref(null)
@@ -17,7 +18,8 @@ onMounted(() => {
     if (progress.value < 100) return
     clearInterval(timer.value)
     const faceShape = measureFaceShape(session.landmarks?.[0], session.imageAspect)
-    session.result = { faceShape, scores: createPhysiognomyScores(faceShape) }
+    const measurements = measureFaceDetails(session.landmarks?.[0], session.imageAspect, faceShape?.total)
+    session.result = { faceShape, measurements, scores: createPhysiognomyScores(measurements) }
     completeTone()
     finishTimer = setTimeout(() => router.push('/result'), 450)
   }, 40)

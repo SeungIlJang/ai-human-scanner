@@ -1,19 +1,39 @@
 {
   "concepts": [
     {
+      "key": "five-features",
       "title": "오관(五官)",
       "summary": "전통 상법에서 귀, 눈썹, 눈, 코, 입을 묶어 부르는 이름입니다.",
-      "source": "aksPhysiognomy"
+      "source": "aksPhysiognomy",
+      "measurements": [
+        { "key": "browGap", "label": "눈썹 사이 너비 / 얼굴 너비" },
+        { "key": "eyeGap", "label": "눈 사이 너비 / 얼굴 너비" },
+        { "key": "noseWidth", "label": "콧방울 너비 / 얼굴 너비" },
+        { "key": "mouthWidth", "label": "입 너비 / 얼굴 너비" }
+      ]
     },
     {
+      "key": "three-sections",
       "title": "삼정(三停)",
       "summary": "이마, 코, 턱에 대응하는 얼굴의 위·가운데·아래 구역을 살피는 전통 분류입니다.",
-      "source": "aksPhysiognomy"
+      "source": "aksPhysiognomy",
+      "measurements": [
+        { "key": "upperFace", "label": "위쪽 높이 / 얼굴 높이" },
+        { "key": "midFace", "label": "가운데 높이 / 얼굴 높이" },
+        { "key": "lowerFace", "label": "아래쪽 높이 / 얼굴 높이" }
+      ]
     },
     {
+      "key": "five-mountains",
       "title": "오악(五嶽)",
       "summary": "두 광대와 이마, 턱, 코를 각각 다섯 산에 빗댄 전통 분류입니다.",
-      "source": "aksFace"
+      "source": "aksFace",
+      "measurements": [
+        { "key": "foreheadWidth", "label": "이마 너비 / 얼굴 너비" },
+        { "key": "cheekWidth", "label": "양쪽 광대 너비 / 얼굴 높이" },
+        { "key": "jawWidth", "label": "턱 너비 / 얼굴 너비" },
+        { "key": "noseLength", "label": "코 길이 / 얼굴 높이" }
+      ]
     }
   ],
   "sources": {

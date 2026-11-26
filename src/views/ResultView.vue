@@ -2,7 +2,6 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { session, resetSession } from '../stores/session.js'
-import { measureFaceDetails } from '../services/faceMeasurements.js'
 import traditions from '../data/physiognomy-sources.json'
 import FaceMesh from '../components/FaceMesh.vue'
 import ScoreBar from '../components/ScoreBar.vue'
@@ -10,7 +9,7 @@ import ScoreBar from '../components/ScoreBar.vue'
 const router = useRouter()
 const faceShape = computed(() => session.result?.faceShape)
 const scores = computed(() => session.result?.scores)
-const measurements = computed(() => measureFaceDetails(session.landmarks?.[0], session.imageAspect, faceShape.value?.total))
+const measurements = computed(() => session.result?.measurements)
 const interpretations = computed(() => measurements.value?.filter(group => group.interpretation) ?? [])
 
 function restart() {
@@ -30,7 +29,7 @@ function restart() {
       <section class="shape-score primary-results" aria-labelledby="results-title">
         <h2 id="results-title">관상 결과</h2>
         <template v-if="scores">
-          <p>사진의 얼굴 비율과 좌우 균형을 바탕으로 생성한 재미용 점수입니다.</p>
+          <p>사진 속 얼굴을 오관·삼정·오악 기준으로 나눠 측정한 뒤 재미용 점수를 계산합니다.</p>
           <dl class="result-highlights">
             <div v-for="item in scores.highlights" :key="item.label">
               <dt>{{ item.label }}</dt>
@@ -38,8 +37,23 @@ function restart() {
             </div>
           </dl>
           <p>실제 인성이나 행동을 평가하는 수치가 아닙니다.</p>
+          <details class="shape-details">
+            <summary>점수에 반영된 관상 기준</summary>
+            <p>전통 관상 자료는 어떤 부위를 살펴볼지 정하는 데 쓰고, 네 가지 수치는 앱의 규칙으로 생성합니다. 오관에서는 눈썹·눈·코·입의 사진 측정값을 사용합니다.</p>
+            <div class="measurement-grid">
+              <section v-for="group in scores.basis" :key="group.key" class="measurement-group">
+                <h3>{{ group.title }}</h3>
+                <dl>
+                  <div v-for="item in group.measurements" :key="item.key">
+                    <dt>{{ item.label }}</dt><dd>{{ item.value }}%</dd>
+                  </div>
+                </dl>
+                <a class="basis-source" :href="traditions.sources[group.source].url" target="_blank" rel="noopener">분류 출처</a>
+              </section>
+            </div>
+          </details>
         </template>
-        <p v-else>점수를 계산할 얼굴 특징점이 부족합니다. 얼굴 전체가 보이는 사진으로 다시 시도해 주세요.</p>
+        <p v-else>점수를 계산할 얼굴 비율이 충분히 측정되지 않았습니다. 얼굴 전체가 보이는 정면 사진으로 다시 시도해 주세요.</p>
         <details v-if="interpretations.length" class="shape-details">
           <summary>관상 상세설명 · {{ interpretations.length }}개 항목</summary>
           <p>아래 문장은 이 사진의 이목구비에서 보이는 인상을 풀어 쓴 재미용 해석입니다.</p>
@@ -142,6 +156,7 @@ function restart() {
 .measurement-group dl{margin:0}
 .measurement-group dl div{display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px}
 .measurement-group dd{margin:0;white-space:nowrap;color:#81f5d1}
+.basis-source{display:inline-block;margin-top:6px;color:#81f5d1;text-decoration:underline;font-size:12px}
 .tradition-list{padding-left:19px;color:#c8dbd4;font-size:13px;line-height:1.6}
 .tradition-list a{display:block;text-decoration:underline;color:#81f5d1}
 @media(max-width:540px){.measurement-grid{grid-template-columns:1fr}}

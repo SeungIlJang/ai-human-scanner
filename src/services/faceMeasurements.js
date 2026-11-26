@@ -36,9 +36,12 @@ export function measureFaceDetails(points, aspect, symmetry) {
   const eyeWidth = average(w(33, 133), w(263, 362))
   const eyeGapRatio = percent(w(133, 362), width)
   const browWidth = average(w(70, 107), w(300, 336))
+  const browGapRatio = percent(w(107, 336), width)
   const noseWidth = w(98, 327)
   const noseWidthRatio = percent(noseWidth, width)
+  const noseLengthRatio = percent(h(168, 2), height)
   const mouthWidth = w(61, 291)
+  const mouthWidthRatio = percent(mouthWidth, width)
   const upper = v(9) - v(10), middle = v(2) - v(9), lower = v(152) - v(2)
   const thirds = [upper, middle, lower].every(n => n > 0) ? [
     Math.round(upper / height * 1000) / 10,
@@ -65,11 +68,11 @@ export function measureFaceDetails(points, aspect, symmetry) {
       { label: '윤곽 유형 추정', value: outline },
       row('높이 대비 너비', widthRatio)
     ] },
-    { title: '이마', interpretation: foreheadImpression(thirds, foreheadWidthRatio), rows: [
+    { title: '이마', metrics: { foreheadWidth: foreheadWidthRatio }, interpretation: foreheadImpression(thirds, foreheadWidthRatio), rows: [
       row('얼굴 높이 대비 이마 높이', percent(upper > 0 ? upper : NaN, height)),
       row('얼굴 너비 대비 이마 너비', foreheadWidthRatio)
     ] },
-    { title: '눈', interpretation: cornerImpression('눈꼬리', eyeCornerAngle, [
+    { title: '눈', metrics: { eyeGap: eyeGapRatio }, interpretation: cornerImpression('눈꼬리', eyeCornerAngle, [
       '눈매 끝이 살짝 내려가 있어 사진에서 부드럽고 편안한 인상으로 보일 수 있어요.',
       '눈매가 수평에 가까워 사진에서 차분해 보일 수 있어요.',
       '눈매 끝이 살짝 올라가 있어 사진에서 또렷한 인상으로 보일 수 있어요.'
@@ -79,40 +82,40 @@ export function measureFaceDetails(points, aspect, symmetry) {
       row('두 눈 사이 / 얼굴 너비', eyeGapRatio),
       row('눈꼬리 평균 기울기', eyeCornerAngle, '°')
     ] },
-    { title: '눈썹', interpretation: cornerImpression('눈썹', browAngle, [
+    { title: '눈썹', metrics: { browGap: browGapRatio }, interpretation: cornerImpression('눈썹', browAngle, [
       '눈썹 바깥쪽이 내려가 있어 눈 위의 선이 부드럽게 이어져 보일 수 있어요.',
       '눈썹의 양끝 높이가 비슷해 눈 위의 선이 차분하고 고르게 보일 수 있어요.',
       '눈썹 바깥쪽이 올라가 있어 눈 위의 선이 또렷하게 보일 수 있어요.'
     ]), rows: [
       row('평균 눈썹 길이 / 얼굴 너비', percent(browWidth, width)),
       row('평균 눈썹 두께 / 눈썹 길이', percent(average(h(105, 52), h(334, 282)), browWidth)),
-      row('두 눈썹 사이 / 얼굴 너비', percent(w(107, 336), width)),
+      row('두 눈썹 사이 / 얼굴 너비', browGapRatio),
       row('눈썹 평균 기울기', browAngle, '°')
     ] },
-    { title: '코', interpretation: noseImpression(noseWidthRatio, eyeGapRatio), rows: [
-      row('코 길이 / 얼굴 높이', percent(h(168, 2), height)),
+    { title: '코', metrics: { noseWidth: noseWidthRatio, noseLength: noseLengthRatio }, interpretation: noseImpression(noseWidthRatio, eyeGapRatio), rows: [
+      row('코 길이 / 얼굴 높이', noseLengthRatio),
       row('콧방울 너비 / 얼굴 너비', noseWidthRatio),
       row('콧방울 너비 / 코 길이', percent(noseWidth, h(168, 2)))
     ] },
-    { title: '입', interpretation: cornerImpression('입꼬리', mouthAngle, [
+    { title: '입', metrics: { mouthWidth: mouthWidthRatio }, interpretation: cornerImpression('입꼬리', mouthAngle, [
       '입꼬리가 살짝 내려가 있어 이 사진에서는 진지한 표정처럼 보일 수 있어요.',
       '입꼬리가 수평에 가까워 이 사진에서는 담담한 표정처럼 보일 수 있어요.',
       '입꼬리가 살짝 올라가 있어 이 사진에서는 은은한 미소처럼 보일 수 있어요.'
     ]), rows: [
-      row('입 너비 / 얼굴 너비', percent(mouthWidth, width)),
+      row('입 너비 / 얼굴 너비', mouthWidthRatio),
       row('입술 두께 합 / 입 너비', percent(h(0, 13) + h(14, 17), mouthWidth)),
       row('입꼬리 평균 기울기', mouthAngle, '°')
     ] },
-    { title: '턱', interpretation: chinImpression(chinAngle, jawWidthRatio), rows: [
+    { title: '턱', metrics: { jawWidth: jawWidthRatio }, interpretation: chinImpression(chinAngle, jawWidthRatio), rows: [
       row('아랫입술 아래부터 턱끝 / 얼굴 높이', percent(h(17, 152), height)),
       row('턱 너비 / 얼굴 너비', jawWidthRatio),
       row('턱끝 윤곽 각도', chinAngle, '°')
     ] },
-    { title: '광대', interpretation: cheekImpression(cheekDepthRatio, widthRatio), rows: [
+    { title: '광대', metrics: { cheekWidth: widthRatio }, interpretation: cheekImpression(cheekDepthRatio, widthRatio), rows: [
       row('광대 양끝 너비 / 얼굴 높이', widthRatio),
       row('관자·턱 대비 광대의 상대 깊이 추정', cheekDepthRatio)
     ] },
-    { title: '전체', interpretation: overallImpression(thirds, symmetry), rows: [
+    { title: '전체', metrics: { upperFace: thirds?.[0], midFace: thirds?.[1], lowerFace: thirds?.[2] }, interpretation: overallImpression(thirds, symmetry), rows: [
       { label: '상·중·하 비율', value: thirds ? thirds.map(n => `${n}%`).join(' / ') : '측정할 수 없음' },
       row('좌우 균형 점수', symmetry, '점')
     ] }
