@@ -1,4 +1,5 @@
-// Captures 1080x1920 Play Store phone screenshots from the running dev server with headless Edge.
+// Captures store phone screenshots from the running dev server with headless Edge.
+// Default is 1080x1920 for Play. For the App Store's 6.7-inch slot (1290x2796) set SHOT_WIDTH=430 SHOT_HEIGHT=932.
 // The result screens use MediaPipe's canonical face model as a stand-in, so no real person's photo is needed.
 // Usage: node scripts/store-screenshots.mjs <dev server url> <canonical_face_model.obj> <output dir>
 import { spawn } from 'node:child_process'
@@ -9,6 +10,7 @@ import { join } from 'node:path'
 const [site, modelPath, out] = process.argv.slice(2)
 const browser = process.env.BROWSER_PATH || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
 const port = 9333
+const width = Number(process.env.SHOT_WIDTH || 360), height = Number(process.env.SHOT_HEIGHT || 640)
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 // Project the model as a camera 45 cm away would see it, then make the face a little distinctive.
@@ -63,7 +65,7 @@ try {
     console.log('saved', name)
   }
 
-  await send('Emulation.setDeviceMetricsOverride', { width: 360, height: 640, deviceScaleFactor: 3, mobile: true })
+  await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 3, mobile: true })
   await send('Page.navigate', { url: `${site}#/` })
   await sleep(2500)
   await shot('phone-1-home.png')

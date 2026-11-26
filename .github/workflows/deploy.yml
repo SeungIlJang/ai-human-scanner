@@ -22,6 +22,11 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      # The store app loads its bundle from the root path, so it needs its own build.
+      - name: Build the in-app bundle for over-the-air updates
+        run: env -u GITHUB_REPOSITORY npx vite build --outDir dist-app
+      - name: Publish the in-app bundle next to the site
+        run: node scripts/ota-publish.mjs dist-app dist
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

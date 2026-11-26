@@ -70,3 +70,16 @@ image.resize((1024, 500), Image.LANCZOS).save(f'{out}/feature-graphic-1024x500.p
 source = Image.open('public/icons/icon-maskable-512.png').convert('RGB')
 assert source.size == (512, 512)
 source.save(f'{out}/app-icon-512.png', optimize=True)
+
+# App Store icon: 1024x1024, opaque, square. iOS applies its own corner mask.
+size, inset = 1024 * S, .06
+icon = Image.new('RGB', (size, size), BG)
+draw = ImageDraw.Draw(icon)
+scale, offset = (1 - 2 * inset) * size / 512, inset * size
+at = lambda points: [(offset + x * scale, offset + y * scale) for x, y in points]
+draw.polygon(at([(256, 60), (452, 256), (256, 452), (60, 256)]), fill=MINT)
+draw.polygon(at([(256, 120), (392, 256), (256, 392), (120, 256)]), fill=BG)
+center = offset + 256 * scale
+for radius, color in ((91, (0, 191, 255)), (69, BG), (25, MINT)):
+    draw.ellipse([center - radius * scale, center - radius * scale, center + radius * scale, center + radius * scale], fill=color)
+icon.resize((1024, 1024), Image.LANCZOS).save(f'{out}/ios/app-icon-1024.png', optimize=True)

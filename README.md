@@ -83,3 +83,25 @@ MediaPipe는 입력 이미지가 기기에서 처리되고 Google로 보내지�
 
 - `app-icon-512.png`, `feature-graphic-1024x500.png`: `python scripts/store-graphics.py store-assets`로 다시 만듭니다.
 - `phone-*.png` (1080×1920): 개발 서버를 띄운 뒤 `node scripts/store-screenshots.mjs <개발 서버 주소> <canonical_face_model.obj> store-assets`로 실제 앱 화면을 캡처합니다. 결과 화면은 실제 인물 사진 대신 MediaPipe 표준 얼굴 모델을 넣어 찍습니다.
+- `ios/`: App Store용 아이콘(1024×1024)과 6.7인치 스크린샷(1290×2796)입니다. 스크린샷은 같은 스크립트를 `SHOT_WIDTH=430 SHOT_HEIGHT=932`로 실행해 만듭니다.
+
+## 공유 링크를 앱 받기로 전환하기
+
+`package.json`에 스토어별 설정이 있습니다.
+
+- `playStore`: Android 패키지 이름과 `live`
+- `appStore`: App Store Connect에서 앱을 만들면 나오는 숫자 Apple ID(`id`)와 `live`
+
+둘 다 `live: false`(기본)이면 공유 링크(`s/<점수>.html`)가 웹앱으로 바로 연결됩니다. 스토어에 공개되기 전에는 스토어 주소가 열리지 않으므로 이 상태로 둡니다.
+
+스토어에 공개된 뒤 해당 스토어의 `live`를 `true`로 바꿔 푸시하면, 그 플랫폼의 폰에서 공유 링크를 열 때 게이지 카드와 "앱 받기", "설치 없이 웹에서 해보기" 버튼이 있는 안내 화면이 뜹니다. 앱이 없는 플랫폼과 PC에서는 웹앱으로 연결됩니다. 이전에 공유된 링크도 함께 전환됩니다. 빌드 환경 변수 `PLAY_STORE_LIVE`, `APP_STORE_LIVE`(`1` 또는 `0`)로 덮어쓸 수 있습니다.
+
+## 스토어 앱의 OTA 업데이트
+
+스토어 앱(Capacitor 웹뷰)은 스토어 재심사 없이 화면 코드를 갱신합니다. 서버 없이 GitHub Pages만 사용합니다.
+
+- **배포 쪽**: `main`에 푸시하면 워크플로가 앱용 번들을 따로 빌드해(`base`가 `/`) `ota/bundle-<버전>.zip`과 `ota/latest.json`을 사이트에 올립니다. 버전은 번들 내용의 해시(`ota-version.json`)라서 내용이 같으면 버전도 같습니다.
+- **앱 쪽**: 앱 안에서 실행될 때만 `src/services/liveUpdate.js`가 동작합니다. 시작할 때 자기 번들의 `ota-version.json`과 사이트의 `ota/latest.json`을 비교해, 다르면 zip을 받아 다음 실행(또는 백그라운드에서 돌아올 때)에 적용합니다. 새 번들이 시작에 실패하면 플러그인이 이전 번들로 되돌립니다.
+- **네이티브 쪽 필요 사항**: `@capgo/capacitor-updater`(Capacitor 8용) 설치, `capacitor.config`의 `plugins.CapacitorUpdater.autoUpdate`를 `false`로 설정.
+- **호환성 잠금**: `package.json`의 `liveUpdate.nativeApi`가 앱에 들어 있는 값과 같을 때만 업데이트합니다. 웹 코드가 새 네이티브 플러그인을 요구하게 되면 이 숫자를 올리고 새 AAB를 스토어에 올리세요. 그러지 않으면 예전 앱이 실행할 수 없는 번들을 받게 됩니다.
+- OTA로 바꿀 수 있는 것은 화면 코드와 데이터(JS, CSS, 모델, 관상 규칙)뿐입니다. 권한, 네이티브 플러그인, 앱 아이콘, 버전 번호는 스토어 업데이트가 필요합니다.
