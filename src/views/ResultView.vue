@@ -5,6 +5,7 @@ import { session, resetSession } from '../stores/session.js'
 import traditions from '../data/physiognomy-sources.json'
 import rules from '../data/physiognomy-rules.json'
 import { encodeShare } from '../services/shareCode.js'
+import { chooseShareMethod, isShareCancel } from '../utils/shareMethod.js'
 import { isStoreApp } from '../utils/platform.js'
 import FaceMesh from '../components/FaceMesh.vue'
 import ResultScores from '../components/ResultScores.vue'
@@ -24,34 +25,6 @@ const stat = label => scores.value.highlights.find(item => item.label === label)
 // Each score has its own page so that the link preview shows that score and grade.
 // The code after ?d= lets that page show the whole result. It holds scores and readings, never measurements.
 const shareUrl = () => `${site}s/${stat('인성 점수')}.html?d=${encodeShare(scores.value)}`
-async function nativeShare(options) {
-  if (!isStoreApp(window)) return false
-  const { Share } = await import('@capacitor/share')
-  await Share.share(options)
-  return true
-}
-async function cacheShareFile(file) {
-  const bytes = new Uint8Array(await file.arrayBuffer())
-  let binary = ''
-  const chunkSize = 0x8000
-  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
-    binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize))
-  }
-  const { Directory, Filesystem } = await import('@capacitor/filesystem')
-  const result = await Filesystem.writeFile({
-    path: file.name,
-    data: btoa(binary),
-    directory: Directory.Cache,
-  })
-  return result.uri
-}
-async function nativeShareFile(file, options) {
-  if (!isStoreApp(window)) return false
-  const uri = await cacheShareFile(file)
-  const { Share } = await import('@capacitor/share')
-  await Share.share({ ...options, files: [uri] })
-  return true
-}
 function shareText() {
   const { grade, fortune, caution } = scores.value
   // Korean particles depend on whether the last syllable ends in a consonant.
@@ -67,15 +40,18 @@ async function run(action) {
   sharing.value = true
   shareStatus.value = ''
   try { await action() } catch (error) {
-    // Closing the share sheet is not an error.
-    if (error.name !== 'AbortError') shareStatus.value = '공유하지 못했습니다. 화면을 캡처해서 공유해 주세요.'
+    if (!isShareCancel(error)) shareStatus.value = '공유하지 못했습니다. 화면을 캡처해서 공유해 주세요.'
   } finally { sharing.value = false }
 }
+const inStoreApp = isStoreApp(window)
+// Inside the store app the native share sheet does the sending; the plugin code is loaded only there.
+const shareNative = async details => (await import('../services/nativeShare.js')).shareNative(details)
 const shareLink = () => run(async () => {
   const text = shareText(), url = shareUrl()
+  const method = chooseShareMethod({ inStoreApp, hasFile: false, canWebShare: Boolean(navigator.share) })
+  if (method === 'native') await shareNative({ text, url })
   // No title: chat apps prepend it to the text, which repeats the app name.
-  if (await nativeShare({ text, url, dialogTitle: '인성측정 결과 공유' })) return
-  if (navigator.share) await navigator.share({ text, url })
+  else if (method === 'web') await navigator.share({ text, url })
   else {
     await navigator.clipboard.writeText(`${text}\n${url}`)
     shareStatus.value = '공유 문구와 링크를 복사했어요. 붙여넣기 해 주세요.'
@@ -92,8 +68,10 @@ const shareImage = () => run(async () => {
       { label: '잔머리 지수', value: `${stat('잔머리 지수')}점` }
     ]
   })
-  if (await nativeShareFile(file, { text: `${shareText()}\n${shareUrl()}`, dialogTitle: '인성측정 결과 공유' })) return
-  if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], text: `${shareText()}\n${shareUrl()}` })
+  const text = shareText(), url = shareUrl()
+  const method = chooseShareMethod({ inStoreApp, hasFile: true, canWebShareFile: Boolean(navigator.canShare?.({ files: [file] })) })
+  if (method === 'native') await shareNative({ text, url, file })
+  else if (method === 'web') await navigator.share({ files: [file], text: `${text}\n${url}` })
   else {
     const link = document.createElement('a')
     link.href = URL.createObjectURL(file)

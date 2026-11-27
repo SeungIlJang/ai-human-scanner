@@ -1,4 +1,4 @@
-import { registerPlugin } from '@capacitor/core'
+import { CapacitorUpdater as updater } from '@capgo/capacitor-updater'
 import router from '../router/index.js'
 import { session } from '../stores/session.js'
 import { update } from '../stores/update.js'
@@ -10,7 +10,6 @@ const onIdleHome = () => router.currentRoute.value.path === '/' && !session.imag
 
 // Runs only inside the store app. The native side is @capgo/capacitor-updater with autoUpdate off.
 export async function startLiveUpdate() {
-  const updater = registerPlugin('CapacitorUpdater')
   // Must come first on every launch: without it the plugin rolls a new bundle back as broken.
   await updater.notifyAppReady()
   const read = (url, options) => fetch(url, options).then(response => response.ok ? response.json() : null)

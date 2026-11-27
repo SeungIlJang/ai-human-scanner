@@ -91,6 +91,10 @@ MediaPipe는 입력 이미지가 기기에서 처리되고 Google로 보내지�
 - `phone-*.png` (1080×1920): 개발 서버를 띄운 뒤 `node scripts/store-screenshots.mjs <개발 서버 주소> <canonical_face_model.obj> store-assets`로 실제 앱 화면을 캡처합니다. 결과 화면은 실제 인물 사진 대신 MediaPipe 표준 얼굴 모델을 넣어 찍습니다.
 - `ios/`: App Store용 아이콘(1024×1024)과 6.7인치 스크린샷(1290×2796)입니다. 스크린샷은 같은 스크립트를 `SHOT_WIDTH=430 SHOT_HEIGHT=932`로 실행해 만듭니다.
 
+## 앱 안에서의 공유
+
+스토어 앱(Capacitor 웹뷰)에서는 `src/services/nativeShare.js`가 네이티브 공유 시트를 엽니다. Android 웹뷰에는 `navigator.share`가 없기 때문입니다. `@capacitor/share`와 `@capacitor/filesystem` 패키지를 사용하며, 이 코드는 앱 안에서만 로드됩니다. 이미지 공유는 결과 카드를 앱 캐시 폴더에 저장한 뒤 그 파일을 공유합니다. 웹에서는 브라우저의 공유 기능을 쓰고, 없으면 복사나 저장으로 대신합니다. 어떤 방식을 쓸지는 `src/utils/shareMethod.js`가 정합니다.
+
 ## 공유 링크에 담기는 결과
 
 "친구에게 공유"로 보내는 링크는 `s/<점수>.html?d=<코드>` 형태입니다. 받는 사람이 누르면 `#/shared/<코드>`로 넘어가 결과 전체(점수, 등급, 가장 좋은 운과 주의할 점, 부위별 풀이, 다른 점수)가 펼쳐집니다. 서버에 저장하는 것은 없고, 결과가 주소 안의 코드(64자)에 들어 있습니다.
