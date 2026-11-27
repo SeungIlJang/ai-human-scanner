@@ -24,8 +24,10 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSCameraUsageDescription</key>
-	<string>얼굴을 촬영해 기기 안에서 인성 측정 결과를 만들기 위해 카메라를 사용합니다.</string>
+	<string>얼굴을 촬영해 관상 점수를 계산합니다. 사진은 기기 밖으로 전송되지 않습니다.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
